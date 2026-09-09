@@ -86,7 +86,7 @@ try {
     writeDoc(path.join(pipsOutDir, `pip-${num}.md`), {
       id: `pip-${num}`,
       title: `PIP-${num}: ${info.title}`,
-      sidebar_label: `PIP-${num} — ${info.title}`,
+      sidebar_label: `PIP-${num} , ${info.title}`,
       sidebar_position: Number(num),
       slug: `/pips/pip-${num}`,
     }, body);
