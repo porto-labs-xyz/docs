@@ -1,0 +1,47 @@
+name: Deploy docs
+
+on:
+  push:
+    branches: [main]
+  # Lets the PIPs/whitepaper repos (or a human) trigger a rebuild without
+  # a commit landing here.
+  workflow_dispatch:
+  repository_dispatch:
+    types: [content-updated]
+  schedule:
+    # Catch-all in case a source-repo push doesn't reach us: rebuild daily.
+    - cron: '17 6 * * *'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
