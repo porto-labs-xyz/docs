@@ -1,6 +1,6 @@
 # Porto Docs
 
-Source for [docs.porto.xyz](https://docs.porto.xyz), built with [Docusaurus](https://docusaurus.io).
+Source for [docs.portolabs.xyz](https://docs.portolabs.xyz), built with [Docusaurus](https://docusaurus.io).
 
 This repo holds no protocol content itself. `docs/whitepaper.md` and `docs/pips/` are generated at build time by `scripts/pull-content.mjs`, which clones:
 
@@ -27,4 +27,4 @@ GitHub Actions (`.github/workflows/deploy.yml`) builds and publishes to GitHub P
 - manual dispatch (Actions tab → "Deploy docs" → Run workflow)
 - `repository_dispatch` from the PIPs/whitepaper repos, so an edit there rebuilds this site within a minute or two
 
-Custom domain is set via `static/CNAME` (`docs.porto.xyz`) — point a `CNAME` DNS record at `porto-labs-xyz.github.io`.
+Custom domain is set via `static/CNAME` (`docs.portolabs.xyz`) — point a `CNAME` DNS record at `porto-labs-xyz.github.io`.
