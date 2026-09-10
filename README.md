@@ -28,3 +28,9 @@ GitHub Actions (`.github/workflows/deploy.yml`) builds and publishes to GitHub P
 - `repository_dispatch` from the PIPs/whitepaper repos, so an edit there rebuilds this site within a minute or two
 
 Custom domain is set via `static/CNAME` (`docs.portolabs.xyz`) , point a `CNAME` DNS record at `porto-labs-xyz.github.io`.
+
+## Copyright and licence
+
+Copyright © 2026 Entropy Tech Ltd.
+
+The documentation content is licensed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/). Porto names, logos, and other trademarks are not licensed under this licence. The Docusaurus site code and third-party dependencies retain their respective licences.
