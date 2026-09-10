@@ -21,9 +21,9 @@ The classical past is the foundation, expressed through spare architectural penc
 The artist and the distributor
 should be the same party.
 
-Building a CDN meant hiring the engineers to build and operate it. That technical barrier kept distribution in the hands of intermediaries.
+The platform's moat is the industry's assumption that building a CDN is a massive undertaking. It is no longer a big lift.
 
-We can now build a geo-localised CDN ourselves. We have already done it in the MVP.
+We have already built a geo-localised CDN in the MVP.
 
 The inherited boundary keeps distribution value away from creators of IP and musical works.
 
@@ -33,7 +33,7 @@ No more moats where none are needed.
 
 ## Files and production
 
-Latest PDF: `Porto_Pitch_Deck_CDN_MVP.pdf`, in the workspace `output/pdf` directory. Background assets are in `output/assets/luna-pencil` and `output/assets/luna-foreground`. The PDF keeps native text and vector infographics. Every revision is rendered and checked for layout and unintended copy changes.
+Latest PDF: `Porto_Pitch_Deck_The_Inherited_Moat.pdf`, in the workspace `output/pdf` directory. Background assets are in `output/assets/luna-pencil` and `output/assets/luna-foreground`. The PDF keeps native text and vector infographics. Every revision is rendered and checked for layout and unintended copy changes.
 
 The background images below were produced with the built-in image generation tool. Prompts are preserved verbatim for reproducibility. The round illustration and open padlock are native vector drawings.
 
