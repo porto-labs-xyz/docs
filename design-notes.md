@@ -21,15 +21,19 @@ The classical past is the foundation, expressed through spare architectural penc
 The artist and the distributor
 should be the same party.
 
-We now have the means and technology for artists to own and run the infrastructure that delivers their music.
+Building a CDN meant hiring the engineers to build and operate it. That technical barrier kept distribution in the hands of intermediaries.
 
-The boundary between artist and distributor is an inherited limitation. It keeps distribution value away from the people who create the IP and musical works.
+We can now build a geo-localised CDN ourselves. We have already done it in the MVP.
+
+The inherited boundary keeps distribution value away from creators of IP and musical works.
+
+Source for MVP status: direct founder clarification on 10 September 2026. This is an MVP statement, not a claim of a scaled production rollout.
 
 No more moats where none are needed.
 
 ## Files and production
 
-Latest PDF: `Porto_Pitch_Deck_Unlocked_Value.pdf`, in the workspace `output/pdf` directory. Background assets are in `output/assets/luna-pencil` and `output/assets/luna-foreground`. The PDF keeps native text and vector infographics. Every revision is rendered and checked for layout and unintended copy changes.
+Latest PDF: `Porto_Pitch_Deck_CDN_MVP.pdf`, in the workspace `output/pdf` directory. Background assets are in `output/assets/luna-pencil` and `output/assets/luna-foreground`. The PDF keeps native text and vector infographics. Every revision is rendered and checked for layout and unintended copy changes.
 
 The background images below were produced with the built-in image generation tool. Prompts are preserved verbatim for reproducibility. The round illustration and open padlock are native vector drawings.
 
