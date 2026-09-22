@@ -8,11 +8,11 @@ slug: /overview
 
 **APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
-## Current direction: Move accounting, one streaming-node role
+## Approved direction: Move accounting, one streaming-node role
 
 The product owner has approved simplifying London to a player, small coordinator, private S3 audio origin, streaming nodes and Move-owned accounting/payout state. Any eligible artist or other participant can operate the same streaming-node software. A real node-to-node cache transfer remains part of the pilot.
 
-**Architecture revision in progress.** This direction supersedes the previous RocksDB-first priority and hash-only commitment contract. The detailed chapters below still describe that preceding revision and are not yet a consistent implementation handoff for the new design. Do not build the old ledger or commitment-only settlement path from them.
+The authoritative accounting and payout contract is [Move-owned accounting and payout protocol](09-move-contract-specification.md). It supersedes the preceding RocksDB-first priority and hash-only commitment contract. Where an older chapter conflicts with this protocol, the Move protocol prevails. Do not build the old local financial ledger or commitment-only settlement path.
 
 Start with the [Move storage spike](https://github.com/porto-labs-xyz/docs/blob/main/research/london-move-storage/README.md): Table and BigOrderedMap candidates, bounded accounting, Mainnet limits, local collection tests and explicit remaining benchmark gates. Collection selection is a research recommendation, not a production-scale result. The next specification revision must align accounting, privacy, USDC transfers, APIs and acceptance tests before implementation.
 
@@ -46,7 +46,7 @@ The chapter structure below is retained for the coordinated rewrite. Its earlier
 - [Playback, peer delivery and usage evidence](06-streaming-delivery-and-attestation.md)
 - [Basic integrity controls and manual exceptions](07-fraud-controls-and-disputes.md)
 - [Funding, accounting and real payouts](08-usdc-treasury-and-settlement.md)
-- [One append-only commitment contract](09-move-contract-specification.md)
+- [Move-owned accounting and payout protocol](09-move-contract-specification.md)
 - [Backend modules, APIs and provider boundaries](10-off-chain-services-and-apis.md)
 - [Data model, state machines and ledger](11-data-model-and-event-schemas.md)
 - [Security, privacy and key management](12-security-privacy-and-key-management.md)

@@ -1,87 +1,77 @@
 ---
 id: 09-move-contract-specification
-title: "One append-only commitment contract"
+title: "Move-owned accounting and payout protocol"
 sidebar_position: 10
 ---
 
 **APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
-## Scope
+## Authority and scope
 
-Implement exactly one custom module, `london_commitments`. It stores artifact digests and links, accepts no USDC, calculates no royalties and executes no payouts. Work/operator registries, claim proofs, reserve contracts and on-chain fraud state are outside this release. The following is normative pseudocode, not tested or deployable Move.
+London is an Aptos Move protocol and dapp. The `porto_london` Move package is the authoritative state machine for funded budgets, accepted aggregate usage, allocation, unpaid obligations and payout completion. The Rust coordinator authenticates participants, issues playback and peer-fill grants, validates receipts and submits bounded accepted-usage batches. It cannot create an allocation, mark an obligation paid or change a settled amount outside Move.
 
-Deploy the package under an immutable upgrade policy after staging review. Package publisher/admin is an externally controlled administrative account requiring two human approvals; the concrete account mechanism is pinned in the release profile and reviewed before Mainnet. Runtime writer is a separate restricted account. Immutable code is intentional: a defect requires a new deployment and explicit predecessor link, not rewriting prior state.
+The package uses a configured Aptos fungible asset for settlement. Testnet uses an explicitly configured test asset only. A testnet transfer proves integration behaviour, not revenue, real USDC settlement or Mainnet readiness. Before Mainnet, the release profile must pin the chain ID, native-USDC metadata, framework ABI, package address and administrative accounts.
 
-## Storage and interface
+Audio bytes, raw receipts, listener identities, payment-provider data, node diagnostics and indexed presentation data remain off-chain. They are private evidence or rebuildable projections, not a second financial ledger. The protocol exposes opaque identifiers and bounded public events only.
 
-```text
-Registry {
-  admin: address, writer: address, paused: bool,
-  count: u64,
-  records: Table<vector<u8>, Record>
-}
-Record {
-  batch_id: bytes32, kind: u8,
-  artifact_hash: bytes32, item_count: u64,
-  window_start_ms: u64, window_end_ms: u64,
-  parent_id: bytes32, supersedes_id: bytes32,
-  schema_version: u16, submitted_by: address,
-  committed_at_seconds: u64
-}
-initialize(publisher, admin, writer) // exactly once, publisher account only
-append(writer, batch_id, kind, artifact_hash, item_count,
-       window_start_ms, window_end_ms, parent_id, supersedes_id, schema_version)
-set_writer(admin, new_writer)
-set_paused(admin, paused)
-get(batch_id) -> Record
-configuration() -> (admin, writer, paused, count)
-```
+There is one streaming-node role. Whether an artist or another participant operates a node is an off-chain admission attribute, not a distinct Move role. PRT, a Porto chain, staking, a separate attestor network, an on-chain order book and a six-contract settlement stack are outside London 0.1.0.
 
-`kind`: 1 evidence, 2 accounting, 3 statement-index, 4 payment-journal, 5 correction. All hashes and IDs are exactly 32 bytes. IDs are the domain-separated UUID digest defined in [wire contracts](21-wire-and-commitment-contracts.md). All-zero bytes mean absent optional parent/supersedes reference; a batch ID or artifact hash cannot be zero. Schema version is exactly 1. Empty evidence days are valid with item count zero; no fake receipt is needed. Require start less than end; end cannot be later than current chain time plus 60 seconds. Daily windows are UTC; later correction/payment records carry the covered original window.
+## Package state
 
-The local contract view returns stored records directly; SDK callers compare exact fields, not event text.
+`ProtocolConfig` holds the immutable package version, settlement-asset binding, administrator, trusted coordinator, pause flag and configured limits. The administrator cannot rewrite accounting state or paid history. Replacing an irrecoverably compromised package requires a new immutable package and an explicit predecessor record.
 
-Evidence has no parent. Accounting's parent is its evidence batch. Statement-index's parent is accounting. Payment-journal's parent is accounting and can cover successive payment runs. Correction has both an existing superseded record and its original parent (or zero if correcting root evidence). Parent references must already exist in this package; no cyclic reference or self-reference. Only kind 5 accepts a nonzero supersedes reference. Multiple corrections form a linear chain: off-chain publication checks and verifier enforce lineage; the contract must also keep `latest_correction: Table<bytes32,bytes32>` and reject a correction whose target already has a correction. A correction's parent equals its target's parent. Kind 5 never replaces stored target bytes.
+Use `aptos_std::table::Table` as the baseline keyed collection for independently addressed records. `BigOrderedMap` remains a benchmarked alternative, not an additional production collection. Storage selection is not a scale certification. Every transition uses bounded inputs and must meet the current testnet limits before a Mainnet selection.
 
-## Append algorithm
+| State | Key | Required properties |
+|---|---|---|
+| Funding period | opaque period ID | Asset, funded amount, remaining amount, frozen policy snapshot, open or closed state |
+| Rights snapshot | versioned work ID | Beneficiaries and basis points totalling 10,000, immutable once referenced |
+| Usage bucket | opaque period and bucket ID | Accepted aggregate eligible units, source range and stable payload digest |
+| Allocation page | period and page ID | Deterministic inputs, cursor, totals, remainder state and finalisation status |
+| Payout obligation | opaque obligation ID | Recipient, exact asset amount, source allocation and unpaid or paid state |
+| Replay guard | reporting lane and range | Non-overlapping accepted sequence range and payload digest |
+
+The contract must never keep a listener address, email, track title, raw receipt or a per-listener listening timeline in publicly readable state or events.
+
+## Entry points and invariants
+
+The following semantic interface is normative. Concrete Move types and the selected fungible-asset ABI must be pinned and tested before deployment.
 
 ```text
-require signer == registry.writer
-payload = all caller fields except signer and chain-generated timestamp
-if batch_id exists:
-    require all payload fields exactly match stored record
-    return existing record without new event
-require not paused
-validate lengths, kind, schema, window and reference types
-require new batch_id is nonzero and count will not overflow
-if correction: require superseded record exists and has no later correction
-store immutable Record with signer and chain timestamp
-if correction: record latest_correction[target] = batch_id
-increment count
-emit CommitmentAppended(all Record fields)
+initialize(publisher, administrator, coordinator, settlement_asset, limits)
+open_funding_period(administrator, period_id, funded_amount, policy_hash)
+register_rights_snapshot(administrator, work_id, version, beneficiaries, basis_points)
+submit_usage_batch(coordinator, period_id, lane_id, sequence_start, sequence_end,
+                   bucket_id, payload_digest, aggregate_usage)
+begin_settlement(coordinator, period_id, settlement_id)
+settle_page(coordinator, settlement_id, page_id, bounded_bucket_inputs)
+finalize_settlement(coordinator, settlement_id)
+pay_obligation(payer, obligation_id)
+pause(administrator, paused)
 ```
 
-The exact duplicate check is allowed while paused to support uncertain-submit recovery; it never creates a new record. Signer authorisation still applies. `set_writer` rejects zero/admin collisions as defined by key-separation policy; runtime writer cannot be admin. `set_paused` can be repeated idempotently. Neither admin entry may change a record or delete a correction link. Administrator cannot rotate itself in this release; losing administrative control requires a documented new deployment, preserving old proofs.
+`open_funding_period` escrows or otherwise proves the exact configured asset amount before the period becomes fundable. A policy snapshot contains the approved rights, operator and Porto split rules for that period. The package rejects an unfunded period, changed policy hash, non-positive funding, wrong asset and duplicate period ID.
 
-Events: `RegistryInitialized(admin,writer)`, `CommitmentAppended(record)`, `WriterChanged(old,new)`, `PauseChanged(paused)`. No listener ID, email, work title, raw receipt, private reason or payment-provider reference appears on-chain. Item count and covered window are public metadata.
+`submit_usage_batch` accepts only the configured coordinator. It checks a stable batch ID and payload digest for exact-retry success, rejects conflicting reuse, and rejects overlapping reporting ranges for a lane. A closed period accepts no further usage. The batch contains bounded eligible aggregate units derived from private receipt evidence. It does not accept server-provided recipient amounts.
 
-## Failure contract
+`begin_settlement` freezes the period's denominator and policy snapshot. `settle_page` calculates proportional allocation from the accepted aggregate units and frozen inputs with checked integer arithmetic. It carries numerator remainders and a cursor across pages, so paging cannot alter totals. The sum of allocation, unallocated reserve and prior settlements must equal the funded amount exactly. It creates deterministic unpaid obligations only once. `finalize_settlement` succeeds only when every frozen bucket is consumed, every remainder is assigned by the documented canonical-ID tie break and conservation holds.
 
-| Abort | Meaning |
-|---|---|
-| E_UNAUTHORIZED | Wrong publisher/admin/writer |
-| E_ALREADY_INITIALIZED | Registry already exists |
-| E_PAUSED | New append disabled |
-| E_ID_CONFLICT | Same batch ID, different payload |
-| E_FORMAT | Wrong length, zero ID/hash, kind or version |
-| E_WINDOW | Invalid/future time window |
-| E_REFERENCE | Missing/wrong-type parent, invalid correction target or branch |
-| E_OVERFLOW | Count arithmetic overflow |
+`pay_obligation` atomically checks that the obligation is unpaid, transfers the pinned settlement asset to its registered recipient and marks the obligation paid in the same transaction. A failed transfer leaves the obligation unpaid. The coordinator cannot mark payment complete, and a projection cannot infer completion from a submitted transaction or lagging indexer.
 
-No friend entry points or transfer capabilities are required. All append storage mutation occurs atomically with the event. Off-chain publisher persists intended payload and signed transaction before submission, resolves uncertain hashes and verifies stored bytes after confirmation. An event without matching expected stored record does not pass verification.
+Corrections are append-only compensating transitions before payout. They reference the original accepted batch or allocation, never overwrite settled state, and cannot silently retarget a paid obligation. A correction after payment is a new, explicitly authorised financial obligation or credit, subject to the release policy.
 
-## Required tests and limits
+## Events, queries and projections
 
-Unit/adversarial tests cover initialisation takeover, wrong signer, writer rotation, pause, duplicate success without extra event, conflicting duplicate abort, invalid references, branching correction, future window, empty batch and immutable historical reads after admin operations. Golden digest fixtures verify exact record fields across backend/Move/verifier. Confirm immutable package policy and actual ABI on staging before recording the package address in a signed release profile. `SECURITY REVIEW REQUIRED` applies to implementation and framework API selection, not to adding the five removed modules.
+Emit compact events for funding, usage acceptance, settlement-page completion, settlement finalisation, obligation creation, payout completion, pause changes and corrections. Events include opaque IDs, version, amounts, source references and transaction context. They exclude private receipt content and listener data.
+
+View functions return a keyed period, bucket, settlement or obligation only. Reporting, statements and the dapp read a Rust-maintained event indexer projection, which always displays its indexed ledger version. A lagging projection is not final financial state. The independent Rust verifier reads the Move state and relevant events, replays the published bounded calculation inputs and reports a proof verdict.
+
+## Roles and key separation
+
+The package publisher, administrator, coordinator and payout account are distinct accounts. The coordinator is a restricted operational signer and cannot alter configuration, drain a funding period or approve policy. Testnet may use test accounts with the same separation. Mainnet requires the review and release-profile evidence in [launch inputs](17-open-decisions-and-risk-register.md).
+
+## Required testnet gates
+
+Tests must cover initialisation takeover, unauthorised roles, test-asset binding, funding conservation, fixed rights snapshots, exact retry, conflicting retry, reporting-range overlap, closed-period rejection, bounded multi-page allocation, deterministic remainder assignment, duplicate payout, failed transfer, correction lineage and projection lag. Benchmark `Table` and `BigOrderedMap` with realistic bounded records, contention and persistent state before locking the production collection choice. A passing unit test or testnet transfer is not a Mainnet payout or pilot result.
 
 [Contents](index.mdx) · [Implementation plan](16-implementation-plan.md) · [Launch inputs](17-open-decisions-and-risk-register.md)
