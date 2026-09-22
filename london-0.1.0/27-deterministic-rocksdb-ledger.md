@@ -4,7 +4,9 @@ title: "Build first: deterministic RocksDB ledger"
 sidebar_position: 2.5
 ---
 
-**APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
+**SUPERSEDED ARCHITECTURE · retained for revision history · London 0.1.0**
+
+The product owner has selected Move-owned accounting. This RocksDB-first chapter is no longer an implementation target. See the [current direction](index.mdx) and [storage spike](https://github.com/porto-labs-xyz/docs/blob/main/research/london-move-storage/README.md).
 
 ## First implementation priority
 

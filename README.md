@@ -2,9 +2,9 @@
 
 Source for [docs.portolabs.xyz](https://docs.portolabs.xyz), built with [Docusaurus](https://docusaurus.io).
 
-The London 0.1.0 approved implementation specification is maintained in `london-0.1.0/` and included in the current site build at `/london-0.1.0/overview`. It is approved for implementation of the bounded peer-delivery MVP. Approval does not imply deployment, audit completion or real-money launch authorisation.
+The London 0.1.0 approved implementation specification is maintained in `london-0.1.0/` and included in the current site build at `/london-0.1.0/overview`. The product owner has agreed a simpler Move-accounting direction; detailed chapters await coordinated revision. Approval does not imply deployment, audit completion or real-money launch authorisation.
 
-The first implementation target is the [deterministic RocksDB ledger](london-0.1.0/27-deterministic-rocksdb-ledger.md): strict domain commands, atomic journal/state/outbox, replay and portable checkpoints. This replaces the earlier PostgreSQL storage choice.
+Start with the [Move storage spike](research/london-move-storage/README.md). Move-owned accounting replaces the RocksDB-first and hash-only commitment designs. Storage collection selection remains a research recommendation pending realistic cost and contention benchmarks.
 
 Existing canonical protocol content is mirrored: `docs/whitepaper.md` and `docs/pips/` are generated at build time by `scripts/pull-content.mjs`, which clones:
 

@@ -8,19 +8,19 @@ slug: /overview
 
 **APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
-London is approved for implementation as a bounded real-money music and infrastructure pilot. A listener pays, an independently operated node serves licensed music, Porto records and commits the evidence, and artists and operators receive explainable USDC payouts. An artist node also supplies verified cached content to another participant node.
+## Current direction: Move accounting, one streaming-node role
 
-**Approved scope, not a claim of deployment.** Product-owner approval is recorded on 22 September 2026. Runtime tests, real participant observations and launch authorisations remain separately evidenced. This specification replaces the broader earlier draft without changing canonical PIPs or claiming those proposals were globally amended.
+The product owner has approved simplifying London to a player, small coordinator, private S3 audio origin, streaming nodes and Move-owned accounting/payout state. Any eligible artist or other participant can operate the same streaming-node software. A real node-to-node cache transfer remains part of the pilot.
 
-## Build first: the deterministic RocksDB ledger
+**Architecture revision in progress.** This direction supersedes the previous RocksDB-first priority and hash-only commitment contract. The detailed chapters below still describe that preceding revision and are not yet a consistent implementation handoff for the new design. Do not build the old ledger or commitment-only settlement path from them.
 
-**The main engineering priority is the [RocksDB-backed ledger engine](27-deterministic-rocksdb-ledger.md).** It owns stream and monetary state transitions through a strict domain API, atomically records journal/state/outbox, and supports deterministic replay and portable checkpoints. Build and verify this foundation before product integrations. Its execution rules form the migration boundary for a future sovereign chain; London still uses Porto ordering and Aptos settlement.
+Start with the [Move storage spike](https://github.com/porto-labs-xyz/docs/blob/main/research/london-move-storage/README.md): Table and BigOrderedMap candidates, bounded accounting, Mainnet limits, local collection tests and explicit remaining benchmark gates. Collection selection is a research recommendation, not a production-scale result. The next specification revision must align accounting, privacy, USDC transfers, APIs and acceptance tests before implementation.
 
-Start with [the ledger contract](27-deterministic-rocksdb-ledger.md), then [W0/W1 delivery and acceptance](16-implementation-plan.md). PostgreSQL is superseded as London's authoritative store. No SQL database or generic key/value mutation API is part of this implementation.
+London still excludes PRT, a custom chain and an independent attestor network. Approval of the direction is not deployment, security clearance or observed real payouts.
 
-## Start with the whole story
+## Previous specification, pending revision
 
-Read [scope](00-status-and-scope.md), [executive architecture](01-executive-architecture.md) and [the pilot](25-node-package-and-pilot.md). The complete implementation is one music product, one coordinated participant-node network, one accounting backend, one commitment contract and real transfers. There is no token, custom chain, independent attestor network or six-module settlement system.
+The chapter structure below is retained for the coordinated rewrite. Its earlier approval and validation records describe the previous specification, not completed validation of the revised architecture.
 
 ## Read by responsibility
 

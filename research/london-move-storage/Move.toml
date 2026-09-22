@@ -1,0 +1,9 @@
+[package]
+name = "LondonStorageSpike"
+version = "0.0.1"
+[addresses]
+spike = "0xcafe"
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-framework.git"
+rev = "04611dd2cec1f5b7ef21c2cc151e05c587a2ce19"
+subdir = "aptos-framework"

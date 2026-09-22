@@ -1,0 +1,20 @@
+{
+  "date": "2026-09-22",
+  "network": "mainnet",
+  "ledger_version": "7320108779",
+  "endpoint": "https://api.mainnet.aptoslabs.com/v1",
+  "deployed_modules_checked": [
+    "0x1::table",
+    "0x1::big_ordered_map",
+    "0x1::smart_table"
+  ],
+  "gas_schedule_entries": {
+    "txn.max_transaction_size_in_bytes": "65536",
+    "txn.max_bytes_per_write_op": "1048576",
+    "txn.max_write_ops_per_transaction": "8192",
+    "txn.storage_fee_per_state_slot": "400000",
+    "txn.storage_fee_per_state_byte": "400",
+    "txn.free_write_bytes_quota": "1024"
+  },
+  "caution": "Read-only observation. Gas schedule coefficients are not a measured transaction quote; feature flags and charging rules also apply."
+}

@@ -25,7 +25,8 @@ for page in pages:
     assert all(k in front for k in ('id', 'title', 'sidebar_position')), page
     assert front['id'] not in ids, front['id']
     ids.add(front['id'])
-    assert '**APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**' in text, page
+    required_status = '**SUPERSEDED ARCHITECTURE · retained for revision history · London 0.1.0**' if page.name == '27-deterministic-rocksdb-ledger.md' else '**APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**'
+    assert required_status in text, page
     assert '\u2014' not in text, page
     assert '**DRAFT' not in text, page
     for target in re.findall(r'\]\(([^)]+)\)', text):
@@ -112,4 +113,4 @@ assert sources['status'] == 'APPROVED'
 for source in sources['sources']:
     assert hashlib.sha256((workspace / source['path']).read_bytes()).hexdigest() == source['sha256'], source['path']
 assert len(re.findall(r'^\| A\d\d \|', (root / '22-acceptance-test-catalogue.md').read_text(), re.M)) == 48
-print(f'PASS: {len(pages)} approved pages; {links} local links; {operations} OpenAPI operations; {examples} schema-valid examples; {len(fixtures["artifact_examples"])} artifacts; profile schema; canonical hash and {len(fixtures["allocation_vectors"])} allocation vectors; {len(sources["sources"])} unchanged canonical source hashes; ledger schemas and command/journal/checkpoint hash vectors; 48 acceptance cases')
+print(f'PASS: {len(pages)} specification/history pages (architecture revision pending); {links} local links; {operations} OpenAPI operations; {examples} schema-valid examples; {len(fixtures["artifact_examples"])} artifacts; profile schema; canonical hash and {len(fixtures["allocation_vectors"])} allocation vectors; {len(sources["sources"])} unchanged canonical source hashes; ledger schemas and command/journal/checkpoint hash vectors; 48 acceptance cases')
