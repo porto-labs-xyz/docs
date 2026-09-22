@@ -1,0 +1,99 @@
+{
+  "status": "DRAFT",
+  "review_date": "2026-09-22",
+  "sources": [
+    {
+      "path": "whitepaper/porto-whitepaper.md",
+      "sha256": "87855bd3352335a843849681e90a30058c95ae68e5fc4181327e6e4ef23c394d",
+      "repository_revision": "d902041c348b199d1dd2de5ab73de24ff5a26e67",
+      "sections": [
+        "3.2 System overview",
+        "3.3 The revenue split",
+        "4.2 Built on a stripped, detached fork of Aptos",
+        "6.2 Beta architecture: trusted, region-co-located S3 origin storage",
+        "6.3 What counts as a valid, billable play",
+        "6.4 From a play to an on-chain record",
+        "6.5 From one trusted attestor to a decentralized quorum",
+        "7.2 The user-centric model",
+        "8. Governance",
+        "9. Phased Rollout"
+      ]
+    },
+    {
+      "path": "pips/PIP-2.md",
+      "sha256": "8278fcd18b9a6c6a38aff60ca913896e99b2f794d19bf1c2c4e3220251dfc9a7",
+      "repository_revision": "f7211bb1df96a42be8001f3148df9b5be11c111b",
+      "sections": [
+        "System overview",
+        "Revenue split",
+        "Node roles",
+        "Phased rollout"
+      ]
+    },
+    {
+      "path": "pips/PIP-3.md",
+      "sha256": "6b03d6a1f3c15a09b3eeaae9edf13751c19a2e074cd3f3b53c1e571c2aa5cc94",
+      "repository_revision": "f7211bb1df96a42be8001f3148df9b5be11c111b",
+      "sections": [
+        "1. Token identity",
+        "2. Issuance: mint-on-subscription",
+        "3. Reserve backing (informational, not a peg)",
+        "4. Redemption: two-track payout",
+        "5. Price oracle requirement",
+        "6. Gas / fee model",
+        "7. Staking interplay"
+      ]
+    },
+    {
+      "path": "pips/PIP-4.md",
+      "sha256": "f8ce0ff3419c4eaa375d5711aecb2607831ad0864637f79f57ca3296a8552121",
+      "repository_revision": "f7211bb1df96a42be8001f3148df9b5be11c111b",
+      "sections": [
+        "1. Beta streaming architecture \u2014 trusted-region, co-located S3 origin",
+        "2. Play validity threshold",
+        "3. Client heartbeat and session lifecycle",
+        "4. On-chain schema",
+        "5. Attestation submission and batching",
+        "6. Attestation trust model: Beta vs. Mainnet V1",
+        "7. Musical work registration",
+        "8. Migration path"
+      ]
+    },
+    {
+      "path": "pips/PIP-5.md",
+      "sha256": "e73552a699a3fe0dddcccc330497e5a83e4dd8005cdbf8748192006eaf99c621",
+      "repository_revision": "f7211bb1df96a42be8001f3148df9b5be11c111b",
+      "sections": [
+        "1. Listener accrual",
+        "2. Epoch settlement",
+        "3. Multi-party rights-holder splits",
+        "4. Interaction with redemption",
+        "5. Settlement cost bounding",
+        "Security Considerations"
+      ]
+    },
+    {
+      "path": "pips/PIP-6.md",
+      "sha256": "c5bb3791ed70a217efa6ef4e40cb36de9ce0f934190bac9c9f0f4dd1f2b287fd",
+      "repository_revision": "f7211bb1df96a42be8001f3148df9b5be11c111b",
+      "sections": [
+        "1. Node modes",
+        "2. Registration and staking",
+        "3. Unbonding",
+        "4. Slashing conditions",
+        "5. Beta exemption"
+      ]
+    },
+    {
+      "path": "pips/PIP-7.md",
+      "sha256": "8f59c0c02258c4e58eab76b6781d16c0700323dfea6baeb686adc81e981e0f04",
+      "repository_revision": "f7211bb1df96a42be8001f3148df9b5be11c111b",
+      "sections": [
+        "1. Governed parameter registry",
+        "2. Upgrade mechanism",
+        "3. Beta: single-key governance",
+        "4. Migration path"
+      ]
+    }
+  ]
+}

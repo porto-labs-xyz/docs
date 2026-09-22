@@ -1,0 +1,60 @@
+---
+id: index
+title: "London 0.1.0"
+sidebar_label: "Start here (Draft)"
+sidebar_position: 0
+slug: /overview
+---
+
+**DRAFT · PROPOSED · IMPLEMENTATION SPECIFICATION**
+
+London 0.1.0 specifies a proposed real-money music MVP on Aptos Mainnet: GBP subscriptions, Porto-owned treasury conversion, native USDC settlement, private origin storage, permissioned delivery operators and Porto-trusted attestation. It launches no PRT, Porto L1, bridge or Porto validator network.
+
+> Porto operates a music delivery and settlement network. Initial real-money settlement uses proven Mainnet infrastructure while Porto builds toward its own app-chain.
+
+This is proposed positioning, not proof of approval or launch. The files are implementation and review artefacts only. All production-blocking decisions remain explicit; no provider agreement, licence, audit, deployment or payment is established.
+
+## Read by responsibility
+
+| Reader | Required starting points |
+|---|---|
+| Product / governance | Scope, executive architecture, compatibility, open decisions |
+| Backend | Streaming, fraud, treasury, API contracts, data/wire schemas |
+| Move | Trust model, settlement, module pseudocode, wire commitments, acceptance tests |
+| Frontend | Journeys, glossary, API contracts and confirmation states |
+| Infrastructure / security | Trust, key management, operations, testing and launch gates |
+| Finance / legal / provider | Rights, money states, disputes, review gates and decisions |
+
+## Documents
+
+- [Status and scope](00-status-and-scope.md)
+- [Executive architecture](01-executive-architecture.md)
+- [System architecture](02-system-architecture.md)
+- [Roles and trust model](03-roles-and-trust-model.md)
+- [Listener, artist and operator journeys](04-listener-and-artist-journeys.md)
+- [Catalogue, rights and content](05-catalogue-rights-and-content.md)
+- [Streaming, delivery and attestation](06-streaming-delivery-and-attestation.md)
+- [Fraud controls and disputes](07-fraud-controls-and-disputes.md)
+- [USDC treasury and settlement](08-usdc-treasury-and-settlement.md)
+- [Move contract specification](09-move-contract-specification.md)
+- [Off-chain services and APIs](10-off-chain-services-and-apis.md)
+- [Data model and event schemas](11-data-model-and-event-schemas.md)
+- [Security, privacy and key management](12-security-privacy-and-key-management.md)
+- [Operations, observability and incidents](13-operations-observability-and-incidents.md)
+- [Testing and launch gates](14-testing-and-launch-gates.md)
+- [Future Porto app-chain migration](15-migration-to-porto-app-chain.md)
+- [Implementation plan](16-implementation-plan.md)
+- [Open decisions and risk register](17-open-decisions-and-risk-register.md)
+- [Compatibility with existing PIPs](18-compatibility-with-existing-pips.md)
+- [Architecture decision records](19-architecture-decisions.md)
+- [API contracts](20-api-contracts.md)
+- [Wire encoding and commitment contracts](21-wire-and-commitment-contracts.md)
+- [Acceptance test catalogue](22-acceptance-test-catalogue.md)
+- [Source register and evidence boundaries](23-source-register.md)
+- [Glossary](glossary.md)
+
+## Machine-readable artefacts
+
+[OpenAPI contract](./openapi.json) defines endpoint schemas and examples; [source manifest](./source-manifest.json) pins reviewed sources. Both are stored next to these documents. The [validation report](24-validation-and-impact.md) records documentation checks and their proof boundaries.
+
+Build integration uses the existing site with this source folder, not a copied `docs/docs/london-0.1.0` tree. No publication is authorised by the existence of this section.

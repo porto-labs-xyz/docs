@@ -26,6 +26,17 @@ const config: Config = {
   trailingSlash: false,
 
   onBrokenLinks: 'throw',
+  markdown: {mermaid: true},
+  themes: ['@docusaurus/theme-mermaid'],
+  plugins: [
+    ['@docusaurus/plugin-content-docs', {
+      id: 'london',
+      path: 'london-0.1.0',
+      routeBasePath: 'london-0.1.0',
+      sidebarPath: './sidebars.london.ts',
+      editUrl: 'https://github.com/porto-labs-xyz/docs/tree/main/',
+    }],
+  ],
 
   i18n: {
     defaultLocale: 'en',
@@ -69,6 +80,7 @@ const config: Config = {
         src: 'img/logo.svg',
       },
       items: [
+        {type: 'doc', docsPluginId: 'london', docId: 'index', label: 'London 0.1.0 (Draft)', position: 'left'},
         {
           type: 'doc',
           docId: 'whitepaper',
