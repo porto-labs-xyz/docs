@@ -80,7 +80,7 @@ const config: Config = {
         src: 'img/logo.svg',
       },
       items: [
-        {type: 'doc', docsPluginId: 'london', docId: 'index', label: 'London 0.1.0 (Draft)', position: 'left'},
+        {type: 'doc', docsPluginId: 'london', docId: 'index', label: 'London 0.1.0 (Approved)', position: 'left'},
         {
           type: 'doc',
           docId: 'whitepaper',

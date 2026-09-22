@@ -1,57 +1,45 @@
 ---
 id: 07-fraud-controls-and-disputes
-title: "Fraud controls and disputes"
+title: "Basic integrity controls and manual exceptions"
 sidebar_position: 8
 ---
 
-**DRAFT · PROPOSED · IMPLEMENTATION SPECIFICATION**
+**APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
-## Decision pipeline
+## Small control set
 
-Validate schema/signature, operator/key validity interval, grant consumption, lease generation, catalogue version, chunk digest, successful bytes and uniqueness before scoring. Invalid cryptographic or integrity evidence is rejected. Missing corroboration, abnormal rates or ambiguous provider state is held. Only `approved` contributes to accrual. Record deterministic rule hits, policy hash, input digest, reviewer and decision revision. New policy versions apply prospectively; re-review requires a linked revision, never mutation.
+This MVP implements deterministic validation, duplicate prevention, rate limits, suspension and manual payout holds. It does not implement a fraud scoring engine, operator reputation market, case-management dashboard, independent adjudication, automated clawback, staking or slashing.
 
-| Control | Proposed configurable default | Action |
+| Condition | Required action | Accounting effect |
 |---|---|---|
-| Active account leases | 1 | Reject second session unless takeover |
-| Account session issuance | 10/minute | HTTP 429, then review sustained abuse |
-| Credited duration per account/day | 86,400,000 ms | Hold excess, respect interval overlap |
-| Same account/work eligible sessions | 20/day | Hold excess for review |
-| Granted prebuffer | 10 seconds | Deny excess range grants |
-| Receipt replay | Zero duplicate contribution | Return original receipt, reject changed payload |
-| Operator bad-signature or integrity failure | Any | Quarantine receipt, integrity failure suspends route immediately |
-| Abnormal node accepted-duration change | Greater than 3x trailing 7-day median, minimum 100 sessions | Hold new rewards and manual review; cold-start always capped |
-| Review age | 48 hours | Escalate, never auto-approve |
+| Invalid schema/signature or unknown key | Reject receipt with stable reason | Zero credit |
+| Grant not consumed, wrong node/purpose or expired | Reject; record security event | Zero credit |
+| Incomplete bytes or failed response | Retain partial/error | Zero credit; retry permitted |
+| Duplicate identical receipt ID | Return original disposition | No extra duration or money |
+| Duplicate ID with changed body | Reject 409; alert | Hold affected session |
+| Two complete attempts for a chunk | Earliest consume sequence wins | One duration, one serving operator |
+| Missing or late receipt | Record missing/late explicitly | Zero until separately approved correction |
+| Content mismatch | Quarantine chunk; suspend source pending investigation | Hold affected unpaid listener-days |
+| Unexplained activity/collusion concern | Manual hold with reason and operator suspension if needed | No payout until resolution |
 
-Thresholds are hypotheses for testing, not measured fraud accuracy. IP/device signals can support investigation but never prove identity, guilt or settlement duration. Review shared networks and accessibility usage before permanent sanctions. Cold-start operator daily monetary caps and account creation/payment friction are D09/D11 launch configuration, not unlimited defaults.
+A hold applies to the whole listener-day because excluding a suspicious work could otherwise redistribute its share to other works. Valid evidence still gets committed while its allocation is held. Once resolved, allocate that listener-day once through a later accounting batch referencing the original evidence. Database uniqueness must prevent allocation in both the original and later batch.
 
-## Holds, disputes and corrections
+## Manual exception record
 
-```mermaid
-flowchart TD
-  R[Receipt] --> V{Valid evidence?}
-  V -->|No| Q[Reject or quarantine]
-  V -->|Uncertain| H[Hold and review]
-  V -->|Yes| A[Approve accrual]
-  Q --> D[Dispute opened]
-  H --> D
-  A --> S{Transfer already confirmed?}
-  S -->|No, new fraud flag| X[Freeze batch or unpaid leaf]
-  S -->|Yes, later dispute| Y[Recovery case]
-  D --> I[Independent reviewer]
-  I -->|Evidence accepted| C[Versioned corrective allocation]
-  I -->|Evidence rejected| Z[Reasoned denial and appeal window]
-  X --> I
-  Y --> I
-```
+Use an append-only admin command or small form with `exception_id`, target type/ID, reason enum, private note reference, actor, timestamp, status and predecessor event. Status is `open`, `released`, or `closed_no_credit`. Only authorised support/finance roles change it. The original decision remains present. Support communication can happen through existing channels; no new messaging product is required.
 
-Case lifecycle: `open -> investigating -> awaiting_evidence -> upheld|rejected -> appeal -> closed`; appeal can return to investigating with a different reviewer. Proposed submission window is 30 days from statement, response target two business days, resolution target ten business days. These are proposed operating targets and D08/D09 terms, not statutory limits; mandatory rights take precedence after legal review.
+An unpaid allocation can be held. An unsigned payment run can be cancelled and rebuilt against a correction. A signed or submitted transaction must first be reconciled; a local hold cannot stop a transaction already accepted by the network. Confirmed transfers are never “reversed” in software. Any recovery payment or adjustment has a new ID, approval and link to the original.
 
-Before on-chain publication, a held listener-day allocation remains reserved internally; freeze the entire listener-day if unresolved evidence could change its denominator. Do not redistribute held time to other works. After publication pause the affected batch immediately, then mark disputed unpaid leaves held. Cancel/reissue only unpaid leaves with an immutable supersession link and finance approval. Paid transfers cannot be undone. A recovery creates a separate receivable or voluntary return transaction; future offset requires contract/legal authority, disclosure and review. Never create negative on-chain payments or claw back unrelated recipients.
+## Automatic boundaries and operator reinstatement
 
-Operator lifecycle: `pending -> active -> suspended -> probation -> active|removed`. Suspension time and compromised-key interval are recorded. Reinstatement needs resolved incident, new key if needed, successful probes and independent approval. Retain original signed evidence and appeals.
+One active session, ten-second listener-wide prebuffer, per-session rate limits and receipt deadlines are fixed implementation rules. Nodes with corrupted content stop serving that rendition immediately and report it. Porto suspension blocks grant issuance and consumption. Reinstatement requires key/content checks, successful probe and an admin event recording the reason. There is no score or probation algorithm.
 
-## ZK boundary
+Daily reports flag zero-receipt consumed grants, signature failures, duplicate conflicts, unusual repeated works, very high credited duration and operator concentration for human inspection. These reports are observations, not an automatic claim of fraud. A listener cannot receive more than 86400000 credited media milliseconds per UTC day; exceeding that cap holds the listener-day for investigation rather than silently trimming whichever artist comes last.
 
-ZK can demonstrate execution of a defined computation over committed inputs. It does not make fabricated delivery inputs truthful. MVP priorities are input provenance, access control, independent review and bounded funds. `OUT OF SCOPE`: a launch ZK system. Optional research can evaluate private allocation proofs against fixed inputs and independently measured costs after the input trust problem is addressed.
+## Corrections and research boundary
 
-[London 0.1.0 contents](index.mdx) · [Decision register](17-open-decisions-and-risk-register.md)
+Never edit a committed artifact. Publish a correction with a new batch ID, `supersedes_id` and explanation hash; retain the old artifact. Corrections before payout can change obligations through balancing ledger entries. Corrections after payout produce explicit liabilities/credits requiring finance review. They do not retroactively move assets.
+
+ZK, independent attestations and stronger input-truth mechanisms are outside this release. A proof of computation cannot by itself establish that fabricated source inputs describe genuine listening. Keep the pilot funding cap and residual trust disclosure visible in the release record.
+
+[Contents](index.mdx) · [Implementation plan](16-implementation-plan.md) · [Launch inputs](17-open-decisions-and-risk-register.md)

@@ -4,30 +4,49 @@ title: "Listener, artist and operator journeys"
 sidebar_position: 5
 ---
 
-**DRAFT · PROPOSED · IMPLEMENTATION SPECIFICATION**
+**APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
-## Listener journey
+## Listener
 
-1. Authenticate through the selected identity provider using authorization code with PKCE. Backend validates issuer, audience, state and nonce, then sets a secure HttpOnly session cookie. No wallet is required.
-2. Purchase a GBP subscription through hosted provider checkout. The signed payment event updates access according to the approved access policy. Show payment pending until the provider confirms the relevant state. Authorisation may grant trial access only under a separately approved rule; it cannot fund allocations.
-3. Select an available licensed work. Gateway checks identity, current entitlement, territory, rights window and the account's exclusive playback lease. A second session returns `SESSION_CONFLICT`; explicit takeover closes the old lease.
-4. Press Play. No first-load autoplay. Receive short-lived grants, refresh while playing, show buffering/fallback transparently. Pause stops new grants. Resume preserves the session if its lease remains live. After expiry create a new session, subject to daily limits.
-5. Support view shows provisional activity and its settlement state, never a spendable customer balance or a fixed per-stream price. Cancellation stops renewal, with access until paid-through unless a refund policy revokes it.
+The listener sees a curated catalogue, plan price and billing terms, signs in, and uses hosted checkout. The returning browser shows “Confirming payment” until a verified provider event creates entitlement. A failed or pending payment must not appear paid. The account page exposes access end date and hosted subscription-management link. There is no wallet setup, USDC balance or token purchase.
 
-## Rights-holder journey
+The player starts idle with a selected work. Explicit Play opens a session and fetches the manifest, then chunk grants. Support play/pause, elapsed time, volume, work selection and ordinary seeking. Seeking earns only actually delivered unique chunks and remains rate-limited. Pause stops fetching; the last ten seconds of prebuffer may already have been delivered. Do not display “listened” as a verified fact. Show a short reconnecting state during fallback and a retry action after final failure. Audio must not restart when reading artist or payout information.
 
-Onboard the person/entity; complete necessary checks, agreements, territory and licence review. Upload through a quarantined workflow. Catalogue staff approve a rights version only when all claimed splits and included works are cleared. The system hashes the master and rendition manifests before publication. A rights-holder account and an artist display profile are separate concepts.
+Long-form sets use the same segmented player. Show set title and duration; embedded cue metadata is optional display data and does not create separately paid works. Only sets with all necessary rights cleared enter the catalogue.
 
-Register an Aptos payout address with a domain-separated possession challenge, chain identity and expiry. Require step-up authentication, out-of-band notification and finance review for replacement. Changes have a proposed 48-hour cooling period and apply only to future uncommitted payouts. Show pending change and the current effective address.
+## Artist / rights recipient
 
-For self-custody, user creates/controls the account and recovery mechanism; demonstrate a small approved test transfer before activation. For embedded custody, provider selection, export/recovery, account portability and incident obligations are `OPEN DECISION D03`. No implementation may invent a custodial recovery promise. Lost access freezes future payouts pending re-verification. Already paid USDC is not reversed; committed unpaid leaves need the cancellation/reissue protocol, never silent redirection.
+Manual onboarding records licences, work IDs, approved recipient splits, payout address and the signed address-change procedure. The artist receives an authenticated page with date range, work, accepted served duration, provisional allocation, committed allocation, unpaid amount and confirmed payments. Display the asset and units explicitly. The page explains Porto's role in evidence acceptance and distinguishes operator income if the artist also hosts a node.
 
-Dashboard separates eligible duration, attested duration, provisional accrual, held amount, settled obligation and paid USDC. Every paid row links to chain ID, transaction hash, version and asset. A dispute opens a case without exposing listener identities.
+Each closed statement offers its private canonical JSON, a readable table, the public statement index, commitment transaction link and verifier instructions. It contains no listener IDs or other artists' private accounting. A full accounting audit requires separately authorised access to pseudonymous evidence and funding inputs. The individual statement verifies inclusion and arithmetic for its disclosed lines, not global completeness.
 
-## Operator journey
+Address changes require authenticated support plus a fresh ownership challenge and finance confirmation. Existing signed transactions remain bound to their original recipient. An unsigned approved run must be cancelled and rebuilt if the address changes; no silent mutation is allowed.
 
-Submit endpoint, region, receipt public key and verified payout account. Admission requires agreement, identity review, security inspection and challenge delivery of a known asset. Pending nodes receive no traffic. Active nodes poll short-lived grants, validate content before serving and submit receipts. Health loss routes new grants to fallback. Suspension revokes issuance and quarantines unresolved receipts from the effective incident time; valid historical rewards are reviewed, not automatically confiscated. Reinstatement needs remediation, key rotation where relevant, new probes and a second reviewer.
+## Operator
 
-Frontend acceptance: keyboard-accessible controls, explicit pending/error/stale states, no false paid badge on submission, no private listener data in artist/operator views. Use the released design system during later UI implementation. This document does not change the prototype or approve new presentation copy.
+Porto sends an invitation and approved participation terms. The participant provisions its host, generates a local Ed25519 key, provides an HTTPS endpoint and payout address, then runs the pinned node image. An administrator verifies control and connectivity, records approval and provides a scoped node API token through a private channel. Tokens are not embedded in images.
 
-[London 0.1.0 contents](index.mdx) · [Decision register](17-open-decisions-and-risk-register.md)
+The node downloads its assigned manifest, verifies chunks, completes a health challenge, performs a peer cache fill and serves pilot traffic. The operator view shows online/stale/suspended, cache readiness, delivered and accepted duration, rejected/missing receipt counts, earned rewards, unpaid amounts and payment links. A one-page cost form records hosting, egress and support time. It is enough to collect this manually; do not build a billing marketplace.
+
+Uninstall stops service, revokes credentials and securely deletes cached content after the agreed retention period. Previously earned obligations remain tracked. Onboarding, suspension and exit must be possible without protocol governance.
+
+## Human-facing money labels
+
+| Label | Exact meaning |
+|---|---|
+| Recorded | Receipt retained; eligibility may be unresolved |
+| Eligible | Session passed the duration and evidence rules |
+| Provisional | Estimate based on unclosed accounting inputs |
+| Allocated | Frozen funded accounting assigns this amount |
+| Committed | The allocation artifact hash is confirmed on Aptos |
+| Payment pending | Approved intent is queued, signed or submitted |
+| Paid | Successful asset/recipient/amount verified from confirmed chain transaction |
+| Held / delayed | An explicit reason blocks the next step |
+
+Never use “settled” without saying whether it means accounting finalised or transfer confirmed. A commitment transaction itself transfers no royalties.
+
+## Accessibility and presentation
+
+Use familiar music-first controls and readable statements, not infrastructure terminology in the listening flow. Keyboard operation, visible focus, labelled controls, contrast and reduced-motion support are required. Technical proof details belong behind “Verify statement”. Company tagline remains `Made To Be Listened To.` Demo content and testnet payments must carry visible demo labels.
+
+[Contents](index.mdx) · [Implementation plan](16-implementation-plan.md) · [Launch inputs](17-open-decisions-and-risk-register.md)

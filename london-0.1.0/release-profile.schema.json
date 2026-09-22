@@ -1,0 +1,303 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "London production release profile",
+  "description": "Additionally enforce bps sum 10000, caps recipient <= run <= pilot, approved providers/pins, and independent RPC configuration. Schema shape is not launch approval.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "environment",
+    "release_id",
+    "effective_at",
+    "legal_entity",
+    "territories",
+    "identity_provider",
+    "billing_provider",
+    "billing_event_mapping_ref",
+    "gbp_plan_id",
+    "price_pence",
+    "service_period_policy_ref",
+    "deduction_policy_ref",
+    "reserve_policy_ref",
+    "refund_policy_ref",
+    "unused_budget_policy_ref",
+    "rights_bps",
+    "operator_bps",
+    "porto_bps",
+    "conversion_provider",
+    "custody_provider",
+    "chain_id",
+    "native_usdc_metadata",
+    "commitment_package",
+    "transfer_abi_ref",
+    "sdk_revision",
+    "framework_revision",
+    "rpc_endpoints",
+    "signer_account_ref",
+    "admin_account_ref",
+    "max_pilot_micro_usdc",
+    "max_run_micro_usdc",
+    "max_recipient_micro_usdc",
+    "retention_days",
+    "site_url",
+    "coordinator_url",
+    "node_image_digest",
+    "backend_commit",
+    "incident_contacts_ref",
+    "approval_refs",
+    "gate_evidence"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "london.v1"
+    },
+    "environment": {
+      "const": "production"
+    },
+    "release_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "effective_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "legal_entity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "territories": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z]{2}$"
+      }
+    },
+    "identity_provider": {
+      "type": "string",
+      "minLength": 1
+    },
+    "billing_provider": {
+      "type": "string",
+      "minLength": 1
+    },
+    "billing_event_mapping_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "gbp_plan_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "price_pence": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*$",
+      "maxLength": 20
+    },
+    "service_period_policy_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "deduction_policy_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reserve_policy_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "refund_policy_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "unused_budget_policy_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rights_bps": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9998
+    },
+    "operator_bps": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9998
+    },
+    "porto_bps": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9998
+    },
+    "conversion_provider": {
+      "type": "string",
+      "minLength": 1
+    },
+    "custody_provider": {
+      "type": "string",
+      "minLength": 1
+    },
+    "chain_id": {
+      "const": "1"
+    },
+    "native_usdc_metadata": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{64}$"
+    },
+    "commitment_package": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{64}$"
+    },
+    "transfer_abi_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sdk_revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "framework_revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rpc_endpoints": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "signer_account_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "admin_account_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "max_pilot_micro_usdc": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*$",
+      "maxLength": 20
+    },
+    "max_run_micro_usdc": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*$",
+      "maxLength": 20
+    },
+    "max_recipient_micro_usdc": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*$",
+      "maxLength": 20
+    },
+    "retention_days": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipts",
+        "accounting",
+        "provider",
+        "support",
+        "security"
+      ],
+      "properties": {
+        "receipts": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "accounting": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "provider": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "support": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "security": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "site_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "coordinator_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "node_image_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "backend_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "incident_contacts_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approval_refs": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "gate_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "G0",
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6"
+      ],
+      "properties": {
+        "G0": {
+          "type": "string",
+          "minLength": 1
+        },
+        "G1": {
+          "type": "string",
+          "minLength": 1
+        },
+        "G2": {
+          "type": "string",
+          "minLength": 1
+        },
+        "G3": {
+          "type": "string",
+          "minLength": 1
+        },
+        "G4": {
+          "type": "string",
+          "minLength": 1
+        },
+        "G5": {
+          "type": "string",
+          "minLength": 1
+        },
+        "G6": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

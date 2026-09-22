@@ -1,48 +1,61 @@
 ---
 id: 02-system-architecture
-title: "System architecture"
+title: "System architecture and ownership"
 sidebar_position: 3
 ---
 
-**DRAFT · PROPOSED · IMPLEMENTATION SPECIFICATION**
+**APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
-## Components and durable boundaries
+## Deployment boundaries
+
+The web application calls Porto over HTTPS. Porto owns a modular API and job worker codebase, a relational ledger, private S3 origin in London, and separately permissioned evidence storage. Each participant owns its node host, local cache, node key and outbound connectivity. Porto holds no operator hosting credentials. Operators receive no origin-bucket credentials, listener identity, payment information or treasury key.
+
+Use PostgreSQL transactions and a transactional outbox. Run the payment signer as a separately permissioned worker from the same codebase. It alone can request payout signatures. Node software is a container with persistent cache and receipt spool volumes. Pin image digests; do not require Kubernetes, a service mesh or a distributed queue for this pilot. Language/framework choices are implementation ADRs; they must preserve these contracts and may not change product scope.
 
 ```mermaid
-flowchart TD
-  App[Listener app] --> Auth[Authentication and entitlement]
-  Auth --> Gateway[Porto playback gateway]
-  Gateway --> Delivery[Authorised cache operator]
-  Gateway --> Origin[Porto origin fallback]
-  S3[Private immutable S3 assets] --> Delivery
-  S3 --> Origin
-  Delivery --> Evidence[Signed receipts and immutable evidence]
-  Origin --> Evidence
-  Evidence --> Fraud[Fraud review and Porto attestation]
-  Fraud --> Batch[Approved commitments and settlement manifest]
-  Batch --> Move[Aptos Move application]
-  Move --> Pay[USDC recipient transfers]
-  Move --> Index[Indexer and audit read models]
-  Pay --> Index
+flowchart TB
+  subgraph Porto[Porto-controlled]
+    UI[Web app] --> API[API and playback coordinator]
+    API --> DB[(PostgreSQL ledger and outbox)]
+    API --> OR[(Private origin)]
+    DB --> W[Accounting and commitment worker]
+    W --> EV[(Private evidence files)]
+    DB --> S[Restricted payment worker]
+  end
+  subgraph Participants[Participant-controlled]
+    A[Artist node] -->|Scoped peer grant| B[Other-party node]
+  end
+  API -->|Signed grants| B
+  B -->|Receipts and health| API
+  B -->|Audio over HTTPS| UI
+  W --> CH[Aptos Mainnet]
+  S -->|Native USDC| CH
 ```
 
-| Component | Owns | Failure behaviour |
+## Module responsibilities
+
+| Module | Owns | Must not do |
 |---|---|---|
-| Auth/entitlement | Identity session, subscription access interval | Deny new playback if authoritative state unavailable |
-| Catalogue | Rights version, territory, asset manifest | Deny unknown or withdrawn work |
-| Gateway | Session nonce, concurrency lease, routing | Fail closed for authorisation; origin fallback for serving |
-| Delivery service | Verified cached chunks, signed receipts | Missing/invalid evidence earns nothing |
-| Evidence store | Encrypted append-only originals and receipt index | Persist before acknowledgement; spool bounded evidence or stop rewarded serving |
-| Attestation | Policy-versioned validation and review | Hold uncertain evidence, never guess duration |
-| Treasury ledger | Provider reconciliation and funded budgets | Do not allocate unconfirmed money |
-| Settlement builder | Deterministic immutable allocation manifest | Independent recomputation required before release |
-| Move application | Registry snapshots, budget reservation, transfer uniqueness | Abort atomically; no partial transaction success |
-| Indexer | Cursor-based on-chain projection | Show last verified ledger version and stale flag |
+| Identity and billing | Verified provider events, entitlement, subscription periods | Treat checkout redirects as payment confirmation |
+| Catalogue | Licences, rights snapshots, content manifests | Rewrite a rendition under an existing hash |
+| Coordinator | Session lease, route, grants, atomic grant consumption | Trust browser duration for accounting |
+| Evidence | Receipt ingest, validation decisions, object retention | Overwrite accepted receipts or closed batches |
+| Accounting | Budget lots, allocation lines, holds, statements | Allocate more than funded and unspent budgets |
+| Commitment worker | Canonical artifacts and append transactions | Hold or transfer USDC |
+| Payment worker | Approved payment intent, signing, submission, reconciliation | Select recipients or amounts after approval |
+| Read model | Status and authorised exports | Mark a payment paid from a submission response |
+| Node | Verified cache, scoped serving, receipt spool | Issue playback grants or independently award rewards |
 
-Use PostgreSQL transactions for session leases, receipt uniqueness and ledger postings; a transactional outbox publishes committed changes. Queue delivery is at least once. Consumers keep event-id inboxes. Acknowledge receipt ingestion only after immutable object persistence and transactional index/outbox commit; incomplete writes are reconciled by content digest. No distributed exactly-once claim is made.
+## Routing and failure boundaries
 
-Separate identity/payment, delivery/evidence, finance, and public read-model stores with distinct service identities. No serving key may transfer treasury funds. Two independent authenticated RPC sources must agree on chain identity and committed transaction results before financial reconciliation accepts a payout; disagreement causes a hold.
+Only active nodes with a heartbeat within 60 seconds and a complete verified requested chunk are candidates. Exclude nodes failing three consecutive probes, suspended nodes and nodes already failed for that grant attempt. Sort candidates by node ID; choose `SHA256(session_id || chunk_index)` interpreted as unsigned big-endian modulo candidate count. This deterministic pilot rule spreads traffic without introducing a scheduling market. Record candidates, selection and fallback reason for the experiment.
 
-`ASSUMPTION`: initial region is London, `eu-west-2`, with multi-AZ compute and managed regional S3. Region selection and DR destination require privacy and operations approval. S3 is regional storage; do not assume a bucket belongs to a selected compute availability zone. `CURRENT SOURCE`: PIP-4 §1 and whitepaper §6.2 establish the private London-origin intent, not an implemented topology.
+The browser allows three seconds for first byte, then cancels and requests one retry grant with the prior grant ID. The coordinator marks the old grant cancelled, chooses another node or Porto origin fallback and issues a fresh grant. A response can race cancellation; [receipt rules](06-streaming-delivery-and-attestation.md) determine credit once. At most two participant attempts per chunk, then one origin attempt. An origin failure surfaces a recoverable playback error, not an endless retry loop.
 
-[London 0.1.0 contents](index.mdx) · [Decision register](17-open-decisions-and-risk-register.md)
+A control-plane outage prevents new grants and consumption. Already consumed grants may finish within their 30-second transfer deadline. Chain/provider outages must not erase usage; the backend can continue entitled playback while separately showing delayed anchoring/accounting/payment. Insufficient durable evidence capacity disables new serving rather than silently losing payable records.
+
+## Repository delivery contract
+
+Implement the production system in a separately approved application checkout. This documentation task writes no production application or Move implementation. Required future directories are logical, not instructions to overwrite an existing repository: `apps/web`, `apps/api`, `workers`, `node`, `contracts/commitments`, `packages/contracts`, `tools/verifier`, `tests/fixtures`, `ops`. Existing equivalent structure may be retained. Shared schemas and golden fixtures must have one source of truth.
+
+[Contents](index.mdx) · [Implementation plan](16-implementation-plan.md) · [Launch inputs](17-open-decisions-and-risk-register.md)

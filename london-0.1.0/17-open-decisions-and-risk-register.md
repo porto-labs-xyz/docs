@@ -1,36 +1,43 @@
 ---
 id: 17-open-decisions-and-risk-register
-title: "Open decisions and risk register"
+title: "Required launch inputs and residual risks"
 sidebar_position: 18
 ---
 
-**DRAFT · PROPOSED · IMPLEMENTATION SPECIFICATION**
+**APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
-## Production-blocking decisions
+## Architecture is approved
 
-Every row is `OPEN DECISION`. Owners are required roles, not assigned people. All remain unresolved in this specification; proposed test defaults are not approvals. A closure record must identify named approver, evidence, date, policy/config digest and affected test IDs.
+The product owner has approved the reduced scope. There is no open decision about whether to build peer delivery, a separate attestation service or six settlement modules: peer delivery is required, the latter two are excluded. This register holds external facts and release authorisations that documentation cannot manufacture. Implement the specified interfaces now; fail closed on production operations until their required inputs are supplied.
 
-| ID | Decision and required closure | Owner/review | Blocks | Residual risk |
-|---|---|---|---|---|
-| D01 | Entity, launch jurisdictions, subscription/revenue/custody model, regulated-activity assessment, financial-crime duties and customer terms | Legal/compliance, finance | Real-money onboarding and funds flow | Ownership wording alone cannot establish regulatory status |
-| D02 | GBP provider, conversion/native Aptos USDC withdrawal, redemption eligibility, limits, fees, reconciliation and outage terms | Finance, selected provider, legal | Real conversion/funding | Provider rejection, insolvency or unsupported rail |
-| D03 | Identity, Aptos account custody/recovery, signer system, address change procedure and user control | Security, product, legal/provider | Authentication and payout-account production implementation | Key loss and recovery abuse |
-| D04 | VAT/tax, revenue recognition, FX valuation, fee allocation, reserves, refunds, chargebacks and recovery authority | Finance, tax adviser, legal | Production ledger policy | Underfunding, tax error, unsupported clawback |
-| D05 | Network split, allocation base, daily proration, unused budgets, rounding policy, minimum payout and late adjustments | Product, finance, rights stakeholders/governance | Economic production implementation | Do not assume 70/25/5 or fixture economics |
-| D06 | Recording/publishing/performer/territorial and DJ-set rights, recipient splits, operator remuneration and origin fallback share | Rights counsel, catalogue, operators | Payable catalogue and operator contracts | Unlicensed serving or disputed allocation |
-| D07 | Exact framework/SDK/package versions, USDC metadata/decimals/API, custody vault, upgrade compatibility and admin quorum | Move lead, independent security reviewer | Production Move implementation and deployment | Asset confusion, unsafe custody or upgrade |
-| D08 | Privacy/DPIA, retention and legal holds, export/redaction, public-address disclosure and dispute terms | Privacy, legal, security | Production data collection/retention | Immutable correlation and erasure conflicts |
-| D09 | Eligibility, dedup/long-form policy, fraud caps, suspension/appeal authority and operator cold-start limits | Fraud, product, rights, security | Production reward approval | False positives and operator/listener collusion |
-| D10 | Freeze/cancel/reissue authority, independent finance review, roles, timelocks, treasury and gas monetary ceilings | Finance, security, accountable executive | Signing/reservation/payment | Insider or compromised key loss |
-| D11 | Pilot capacity, deployment/DR region, SLOs, alert thresholds, support roster, RPO/RTO and load baseline | Operations, security, finance | Production infrastructure sizing and go-live | Outages and unsupported scale claims |
-| D12 | Formal acceptance of London departures, public-claim review and separately approved Mainnet rehearsal/pilot | Protocol governance, product, legal, security | Production release | Canonical source mismatch and premature launch claims |
+| Input | Owner | Required evidence / configuration | Blocks |
+|---|---|---|---|
+| L01 entity, territory and terms | Product/legal | Legal entity, offered territory, listener/artist/operator agreements and licensed caching/serving | Real customer/operator participation |
+| L02 identity and billing provider | Product/integration | Selected accounts, provider-supported access/clearance/refund semantics and tested adapter | Live checkout and entitlement |
+| L03 conversion and custody | Finance/security | Approved provider, custody model, actual native-USDC rail and recovery procedure | Funding/signing |
+| L04 economic profile | Product/finance | Price, net-revenue deductions, reserve, rights/operator/Porto basis points, unused-budget/refund treatment | Non-fixture monetary allocation |
+| L05 recipients and catalogue | Catalogue/finance | Rights agreements, all recipient snapshots, ownership evidence and territory availability | Work activation and payment |
+| L06 privacy and retention | Legal/security | Notice covering nodes/client IPs, retention periods, access/export/deletion procedure | Personal-data collection and retained evidence |
+| L07 deployment pins | Engineering/security | Chain ID, native-USDC metadata from issuer, reviewed framework transfer ABI, immutable package, RPC/custody versions | Mainnet execution |
+| L08 operational limits | Finance/operations | Total pilot funding cap, max run/recipient amount, signer control, incident contacts and recovery drill | Mainnet signing |
+| L09 independent participant cohort | Product/operations | Artist and unrelated-party host control, terms, cost collection, observation period | Claiming independent participation |
+| L10 release sign-offs | Product/security/finance | G0-G6 evidence, review findings disposition and signed launch record | Inviting paying production users |
 
-## Additional tracked risks
+No agent may fill these fields by copying test fixtures, adopting old protocol economics silently or declaring a provider compliant without evidence. Record selected values in a private production release profile, with a public non-secret hash and appropriate public terms. Changing economic policy applies prospectively to a new subscription period; never mutate a funded period's policy snapshot.
 
-R01 operator signatures can authenticate fabricated receipts: permissioning, probes, cross-checks, monetary caps and independent review reduce exposure but do not make delivery trustless. R02 private-root allocation fraud: independent recomputation plus bounded vault prevents overspend, not arbitrary trusted allocation. R03 data loss: durable evidence and restore tests are required before acknowledgement. R04 chain/provider/stablecoin failure: pause and preserve liabilities; asset substitution is a new decision. R05 late rights dispute after payment: chain finality prevents unilateral reversal. R06 privacy reidentification through addresses/timing: minimise public fields, review aggregation and disclose limits. R07 unapproved public launch language: keep draft banners and route visible as proposal.
+## Residual risks accepted by the design, not proven absent
 
-## Future decisions, not launch dependencies
+| Risk | Bound/control | What remains true |
+|---|---|---|
+| Fabricated/colluding receipts | Scoped grants, deduplication, inventory audit, manual holds, bounded funding | Porto and nodes remain trusted for input truth |
+| Under-recording before commitment | Recorded grant/receipt reconciliation and external timestamped commitments | Unrecorded real-world events cannot be inferred from a digest |
+| Artist/operator self-listening | Listener budgets and fixed funded totals; manual concentration review | Incentive gaming is possible; do not call it solved |
+| Operator unavailable or expensive | Origin fallback and measured cost/effort | Pilot might not support viable independent economics |
+| Lost evidence | Protected objects and restore drills | A surviving chain hash cannot recreate missing bytes |
+| Wrong recipient or signing error | Ownership proof, frozen run approval, caps, restricted signer | Confirmed transfers may be unrecoverable |
+| Chargeback or asset/provider failure | Company reserves, holds and reconciliation | No promise of risk-free or reversible settlement |
+| Central coordination failure | Backup/recovery and disclosed trust | This is not a permissionless network |
 
-F01 app-chain trigger thresholds and security funding; F02 independent attestor observation/quorum design; F03 validator admission/staking/governance; F04 new-chain asset strategy and any bridge; F05 optional ZK research; F06 later bank payout rail. All require new proposals and reviews. No future date or provider commitment is assumed.
+`LEGAL/COMPLIANCE REVIEW REQUIRED` and `SECURITY REVIEW REQUIRED` identify launch evidence owners. They do not retract the product-owner's specification approval, nor do they imply any legal conclusion has been reached.
 
-[London 0.1.0 contents](index.mdx) · [Decision register](17-open-decisions-and-risk-register.md)
+[Contents](index.mdx) · [Implementation plan](16-implementation-plan.md) · [Launch inputs](17-open-decisions-and-risk-register.md)

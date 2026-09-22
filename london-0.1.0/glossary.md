@@ -1,29 +1,35 @@
 ---
 id: glossary
 title: "Glossary"
-sidebar_position: 100
+sidebar_position: 90
 ---
 
-**DRAFT · PROPOSED · IMPLEMENTATION SPECIFICATION**
+**APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
-| Term | Exact meaning |
+| Term | London meaning |
 |---|---|
-| Audio bytes served | Server-observed bytes written for authorised requests. Does not establish receipt, decoding or attention by a person. |
-| Eligible stream | Closed session whose approved unique served duration reaches the configured threshold, before final attestation commitment. |
-| Attested stream | Eligible session approved by Porto under a pinned fraud policy and included in a confirmed evidence-batch commitment. Not independently proven listening. |
-| Accrued amount | Internal calculated recipient allocation against funded listener-day budgets. Can be held or adjusted; no transfer implied. |
-| Settled amount | Obligation included in a confirmed on-chain settlement root with reserved USDC. Can remain unpaid. |
-| Paid amount | Native USDC actually transferred to the committed recipient and confirmed/reconciled by chain version and event. Not a bank payout. |
-| Cleared revenue | Provider-confirmed funds received by Porto under the selected clearing policy, still exposed to applicable reversals. |
-| Listener allocation | Internal attribution budget, not listener-owned crypto or a withdrawable account. |
-| Delivery operator | Approved cache/serving participant; no Porto consensus role in London. |
-| Trusted attestor | Porto service authorised to accept evidence and commit approved roots. |
-| Validator | Consensus participant of a blockchain. London delivery operators are not Porto validators. |
-| Work | Immutable recording identity; rendition, rights version and artist profile are separate. |
-| Epoch/service day | UTC calendar day used for allocation, with explicit evidence watermark and processing delay. |
-| Mainnet | The real-value Aptos network for London, distinct from a future Porto app-chain and from Aptos testnet. |
-| Commitment | Hash binding to defined data. Does not prove that the data is truthful or available. |
-| Sponsored gas | Porto pays allowed transaction fees using a constrained APT gas budget. |
-| Recovery | A separate correction/receivable/return workflow after error; cannot erase a completed transfer. |
+| Approved specification | Product-owner-authorised implementation baseline; not runtime or launch evidence |
+| Independent operator | Participant controlling the host/account and operating decision |
+| Peer fill | Authorised node-to-node content transfer; earns no listening reward |
+| Delivery node | Cache/server for authorised audio; not a validator or independent attestor |
+| Grant | Short-lived signed authorisation for one node, purpose and chunk |
+| Consumption | Atomic coordinator record admitting one request against a grant |
+| Receipt | Node-signed assertion of bytes served and outcome |
+| Eligible session | Closed session whose valid unique complete chunks meet the threshold |
+| Accepted duration | Sum of eligible unique manifest media intervals, not verified attention |
+| Evidence batch | Frozen inventory of grants, receipts and dispositions |
+| Commitment | On-chain digest/reference fixing the published artifact bytes |
+| Immutable / tamper-evident | Prior chain record is retained; changed off-chain bytes fail digest verification |
+| Accounting allocation | Funded listener-attributed amount assigned under a frozen policy |
+| Statement | Recipient-private allocation detail with a public hash-index proof |
+| Payment run | Exact approved set of transfer instructions and total cap |
+| Paid | Successful native-USDC transfer reconciled to asset, recipient and amount |
+| Uncertain | A transaction outcome cannot yet be established; do not retry as a new payment |
+| Correction | New linked artifact/ledger event preserving earlier evidence |
+| Porto fallback | Porto-controlled serving when participant delivery is unavailable |
+| Subsidy | Separate pilot support, excluded from earned-reward economics |
+| Full audit | Authorised recomputation from private evidence/funding/rights inputs |
+| Artist verification | Checking own statement inclusion/arithmetic and transfer evidence, not all private inputs |
+| App-chain migration | Future separately approved work, not a London implementation dependency |
 
-[London 0.1.0 contents](index.mdx) · [Decision register](17-open-decisions-and-risk-register.md)
+[Contents](index.mdx) · [Implementation plan](16-implementation-plan.md) · [Launch inputs](17-open-decisions-and-risk-register.md)

@@ -1,42 +1,60 @@
 ---
 id: 13-operations-observability-and-incidents
-title: "Operations, observability and incidents"
+title: "Operations, recovery and incidents"
 sidebar_position: 14
 ---
 
-**DRAFT · PROPOSED · IMPLEMENTATION SPECIFICATION**
+**APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
-## Environment topology
+## Environments
 
-Local: synthetic identity/payment adapters, local media fixtures and local chain or mocked chain adapter, always labelled simulation. Staging: isolated AWS account, private origin/evidence, test identities, provider sandbox, Aptos testnet and test assets. Mainnet: separate AWS account, reviewed custody, pinned Aptos Mainnet/asset/package and real provider account. No production customer records in lower environments.
+Local uses fixture identity/billing, object-storage emulator, local database and Aptos localnet/testnet. Staging uses separate provider sandbox accounts, buckets, keys, database and testnet assets with persistent visible TEST labels. Production uses the approved profile, native Aptos Mainnet USDC and independently controlled nodes. Never let a test environment write Mainnet, reuse production keys or claim a test payment is revenue.
 
-A release manifest pins image/package hashes, schema/policy versions, chain and asset, signer roles, limits, migrations, review receipts and rollback action. Canary playback uses internal accounts and excluded synthetic evidence. Schema changes use expand/migrate/contract; do not remove old readers while queues still hold old-version events.
+Pin application/node image digests, migrations, schema versions, profile hash, contract package address, asset metadata and RPC endpoints in the release record. Keep the docs deployment separate from application deployment. Release one backend plus workers and a node container; orchestrator choice must not add a new product subsystem.
 
-## Proposed SLOs and alerts
+## Pilot targets, not measured results
 
-All numbers here are proposed test targets pending D11, not observed production metrics. Monthly entitlement/session availability target 99.9%; p95 session issuance below 500 ms excluding external login/payment, p95 regional first audio below 2 seconds, receipt durable-ingest p95 below 5 seconds. Daily settlement preparation target within 4 hours after the evidence watermark for funded unheld inputs. No payout-latency promise through provider/chain outages.
+| Signal | Target / action |
+|---|---|
+| Node heartbeat | Every 20s; ineligible after 60s stale |
+| Node probe | Every 20s; remove after three failures; probe bytes never payable |
+| Playback first byte | 3s per attempt before fallback |
+| Receipt delivery | Retry immediately then backoff; accepted only within 10min of consumption |
+| Evidence closure | Start at 00:10 UTC for previous day; alert if uncommitted after 1h |
+| Accounting | Prepare within 1h of funding and evidence becoming available; holds explicit |
+| Payout | Attempt approved run within one business day; alert any uncertain transfer immediately |
+| Pilot availability | Measure end-to-end successful chunk delivery, fallback rate and rebuffer time; no unsupported SLA promise |
+| Backup target | Database RPO at most 5min, restore target 4h; verify in staging |
 
-Metrics: grant/receipt rejection by code, unknown signature/key, nonce replay, origin fallback, operator health and integrity, unique credited duration, held value, reviewer age, queue lag, duplicate/out-of-order events, unallocated/held/reserved/paid totals, provider variance, vault free/reserved, sponsor APT runway, transaction abort rate, chain/indexer lag and export access. Labels must not contain listener IDs or IPs.
+Metrics partition real paid playback, free/test playback, peer fills, probes and Porto fallback. Record independent-node share, receipt rejection reasons, chain delays, unpaid obligations, funding mismatch, node costs and participant support time. Avoid account-level PII in metrics labels. Alerts go to the configured internal operations channel; no public fraud accusation is generated automatically.
 
-Page immediately on integrity failure, wrong asset, unbalanced journal, reserve invariant failure, unauthorised signing or paid-state mismatch. Page on chain/indexer lag over 5 minutes, ingestion lag over 5 minutes or unhealthy serving pool over 2 minutes. Alert finance on any reconciliation variance before funding release; never auto-tolerate monetary mismatch. Node probes every 30 seconds, three misses remove new routing, recovery requires three passing probes and no unresolved security hold. Tune and ratify thresholds before launch.
+## Node durability
 
-## Incident runbooks
+Before serving, persist the consumed grant/request in a local journal. After finishing, fsync the signed receipt to the spool before accepting more work that could exhaust reserved spool space. Retry until the coordinator acknowledges durable storage. A crash mid-transfer creates a failed/missing receipt, not invented full credit. A restart must not re-serve a consumed grant. Disk-full stops accepting new grants and reports unhealthy. Cache is disposable; receipt spool is not.
 
-| Incident | Immediate containment | Diagnose/recover | Evidence to resume |
-|---|---|---|---|
-| Payment failure/ambiguous conversion | Hold affected funding lot; stop duplicate instruction | Query immutable provider reference, reconcile statement/bank/chain | Finance reviewer signs exact matched amounts |
-| Chain/RPC outage | Pause new reservations/transfers; persist queue | Compare independent endpoints, inspect known tx hashes and sequence numbers | Consistent committed versions and no duplicate business IDs |
-| Operator outage | Stop new grants; reissue only missing intervals to origin | Verify evidence from old request, health probes and cache digest | Passing probes; no double duration credit |
-| Content-integrity failure | Quarantine asset/node and stop serving rendition | Rehash master/manifests, inspect supply chain and keys | Clean verified assets, new version if bytes changed, security approval |
-| Fraud spike | Hold affected listener-days/operators and cap intake | Compare pinned policy, independent receipts, collusion patterns | Reviewed case cohort and tested rule revision |
-| Compromised key | Revoke grants/role, pause affected batch/payment path | Define compromise interval, enumerate transactions and evidence, rotate custody | Independent review, reconciliation, remediation drill |
-| Bad deployment | Stop rollout; disable offending off-chain feature | Roll back image/config if schema compatible; repair via forward migration otherwise | Canary/contract tests and reconciled queues |
-| Stablecoin freeze/depeg/provider insolvency | Pause new conversion and affected payouts | Finance/legal/provider review; do not substitute another asset silently | Approved recovery and recipient communications |
+## Backup and financial recovery
 
-Incident commander records UTC timeline, affected IDs, containment actions and approvers. Security leads key/integrity incidents; finance leads money reconciliation; operations coordinates restoration. Keep raw evidence restricted. Communications disclose actual delayed/paid state, not speculation.
+Use automated PostgreSQL backups plus point-in-time recovery, retained object versions and separately recoverable secrets. Run a staged restore before launch. Record every signed payout attempt in a second encrypted durable journal before broadcast, so database RPO does not become permission to double-pay. The payment worker must refuse broadcast unless both stores acknowledge the signed payload/hash. Restoring the database starts with all signing disabled; compare the external journal, sender sequence, transaction history and confirmed chain balances, reconstruct missing attempts and reservations, then obtain finance approval to resume. A backup restore never just resets a payment to prepared.
 
-## Rollback boundary
+Commitment recovery compares each frozen artifact/hash with contract storage; retry identical payload or mark confirmed. Never publish a different hash under the old batch ID. Missing artifact bytes are an incident even if their commitment survives on-chain.
 
-Off-chain image/config can roll back if persisted schema/policy compatibility holds. Replaying workers uses business-ID deduplication. An on-chain committed transfer is irreversible by Porto; never label a compensating payment a rollback. Pause, audit and use a reviewed forward package upgrade or new settlement correction. A package upgrade cannot erase balances already transferred. Immutable source roots and paid tombstones survive all recovery paths.
+## Runbooks
 
-[London 0.1.0 contents](index.mdx) · [Decision register](17-open-decisions-and-risk-register.md)
+| Incident | Immediate action | Resume condition |
+|---|---|---|
+| Provider failure | Keep verified existing entitlement until its expiry; stop new uncertain clearance/funding | Verified event replay and reconciliation |
+| Aptos/RPC outage | Queue commitments/payments; show delayed state; preserve playback evidence | Consistent ledger observations and all uncertain attempts resolved |
+| Operator outage | Remove from routing; bounded fallback | Fresh health, verified cache and successful probe |
+| Content mismatch | Quarantine chunk, suspend source, hold affected unpaid days | Manifest comparison, clean refetch, documented admin release |
+| Suspicious usage | Hold affected listener-days and optionally suspend node | Recorded manual decision with evidence |
+| Node/gateway key compromise | Revoke key, stop new consumption, rotate and identify affected interval | New keys, expired old grants and reviewed unpaid evidence |
+| Treasury key compromise | Disable signing, revoke custody access, preserve evidence, reconcile outgoing transfers | New approved custody and finance/security incident clearance |
+| Bad off-chain release | Stop writers/signers; roll back compatible code | Migration compatibility and replay/invariant checks |
+| Bad immutable contract | Stop append, preserve old references, publish corrected package only after review | New release record and explicit chain/package boundary |
+| Lost evidence or database | Stop accounting/signing, restore and reconcile | Recovery checklist complete; no unexplained missing attempts |
+
+## Rollback and support
+
+Use expand/contract database migrations; do not remove a field while an old worker can write it. Rollback must not delete posted entries, rewind chain history or retry unknown transfers. Refunds and corrections are new events. Maintain a named support contact for listener access, artist statement questions and operator onboarding; one existing support channel is enough.
+
+[Contents](index.mdx) · [Implementation plan](16-implementation-plan.md) · [Launch inputs](17-open-decisions-and-risk-register.md)

@@ -1,41 +1,44 @@
 ---
 id: 16-implementation-plan
-title: "Implementation plan"
+title: "Implementation plan and agent handoff"
 sidebar_position: 17
 ---
 
-**DRAFT · PROPOSED · IMPLEMENTATION SPECIFICATION**
+**APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
-## Work packages and dependencies
+## Agent entry contract
 
-This is a delivery plan, not a dated roadmap or authorization to implement. Separate agents can use these package boundaries after ratification; no sub-agent work is required by this document task.
+Read status/scope, architecture, the domain chapter for your work, OpenAPI, wire contracts, configuration and acceptance cases before implementation. Treat this directory as the approved London specification. Do not implement removed features because an older draft or PIP contains them. Do not modify canonical PIPs as a side effect. A missing production business value is a release input, not permission to invent commercial terms.
 
-| Package | Owner | Inputs/dependencies | Deliverable and exit |
+This is a specification delivery. Production application, node and Move implementation start as separate work. Existing prototype/demo UI remains explicitly simulated until wired to the real APIs and tested.
+
+## Work packages and dependency order
+
+| Package | Deliverables | Depends on | Completion evidence |
 |---|---|---|---|
-| WP0 Decisions and review | Product/finance/legal/security | Risk register, compatibility | Approved scope, economics, rights, provider/custody, limits |
-| WP1 Contract fixtures | Backend/Move/QA | WP0 decisions or clearly synthetic test policy | Typed API/event schema, signed-byte and allocation golden vectors |
-| WP2 Catalogue | Backend/content operations | Rights policy, wire identity | Quarantine, manifest/version registry, takedown tests |
-| WP3 Playback | Backend/infrastructure | WP1/WP2, identity provider | Exclusive sessions, grants, private origin and node fallback |
-| WP4 Evidence/fraud | Backend/security | WP3 receipts, rule policy | Immutable evidence, dedup, holds, appeal queue |
-| WP5 Finance | Backend/finance | Provider and accounting review | Reconciliation, lot funding, day budgets, independent allocation |
-| WP6 Move package | Move/security | WP1, asset/custody decision | Six narrow modules, invariant tests, independent audit |
-| WP7 Executor/indexer | Backend | WP5/WP6 | Safe retries, paid-state projection and reconciliation |
-| WP8 Product interfaces | Frontend/design | WP1, WP3, WP7 | Listener, artist/operator and reviewer states with accessibility |
-| WP9 Launch operations | Infrastructure/QA | WP2-WP8 | SLO tests, restore/incident drills and launch manifest |
-| WP10 Bounded pilot | Accountable launch owner | G0-G7 evidence | Separately authorized Mainnet pilot and reconciliation |
+| W0 shared contracts | Schema library, profile loader, ID/domain constants, fixtures, canonicalisation verifier | None | A01-A04, A37 |
+| W1 ledger foundation | DB migrations, roles, audit/outbox, identity/billing adapters, manual funding import | W0 | A05-A08, A20-A23 |
+| W2 catalogue/player | Manual import, signed chunk manifest, web catalogue/player, entitled sessions and grants | W0-W1 | A09-A12, A35 |
+| W3 node and peers | Container, credential setup, verified cache, peer fill, consume journal, receipts, health/fallback | W0-W2 | A13-A19, A36 |
+| W4 accounting | Daily closure, duration credit, funded allocation, corrections/holds, private statements | W1-W3 | A20-A26 |
+| W5 commitments/verifier | One immutable Move module, publisher, retained artifacts, public index and independent CLI verifier | W0,W4 artifact schemas | A27-A30 |
+| W6 real payout path | Restricted signer, run approval, durable attempt journal, transfer reconciliation | W1,W4-W5 | A31-A34 |
+| W7 release/pilot | Restore drill, browser/load evidence, production profile, Mainnet rehearsal and cohort report | W0-W6 | A35-A40 and G0-G7 |
 
-Backend work can implement synthetic adapters before provider selection but cannot represent them as an integration. Frontend can build contract-driven fixtures but cannot label mock transfers paid in a real-money view. Move can prototype with a test asset but deployment/production asset API remains gated. Infrastructure plans require no actual provisioning in this task.
+W5 contract implementation can start against W0 fixtures while W4 is in progress. Work package boundaries do not require separate services, teams or agents. A frontend may use fixtures until W2/W4 APIs exist, but must display demo state and never mix fixture money with production views.
 
-## Handoff rule
+## Required deliverables by discipline
 
-Each package supplies: exact spec/decision versions, source change list, test environment and receipt, open risks, migration/rollback steps, least-privilege credentials required, and reviewer. If a requirement changes payout, privacy, trust or identity semantics, reopen the relevant decision and bump schema/policy version before coding around it.
+Backend: transactional state machines, provider normalization adapters, grant token bucket and consumption, signed evidence ingestion, ledger and deterministic allocation, public/private exports and job recovery. Frontend: explicit-play music experience, subscription state, artist/operator statements, pending/held/paid labels and verifier downloads. Node: documented install/update/uninstall, participant-held key, hash-verified peer cache, durable receipts, credential rotation and health. Move: exactly the commitment module and deployment/readback scripts. Infrastructure/security: deployment profiles, secret boundaries, backups, replay recovery, review and release record. QA: executable cases and evidence links, not a checklist marked done without runs.
 
-Integration order is catalogue/session, receipt/evidence, fraud/budget, manifest/Move, confirmation/dashboard. Reject a demo that bypasses the verification or reconciliation boundary. QA can start from [acceptance IDs](22-acceptance-test-catalogue.md); implementers use [API catalogue](20-api-contracts.md) and [wire contracts](21-wire-and-commitment-contracts.md).
+## Implementation review rules
 
-## Local documentation build
+Every pull request identifies the W package and acceptance IDs it advances. Contract/schema changes update examples and fixtures in the same change. New dependencies must serve a required capability; no new operator market, token mechanics, service mesh, social surface or fraud product enters through an implementation convenience. Use the simplest existing project conventions compatible with these requirements. Runtime/library versions are pinned in the implementation lockfiles and release record after compatibility checks.
 
-The canonical files remain at `docs/london-0.1.0/` relative to the Porto workspace. Docusaurus registers this folder as a separate documentation instance in the existing site, with entry route `/london-0.1.0/overview` and autogenerated navigation. No duplicated documentation tree is necessary. Run `npm exec docusaurus build` inside the docs repository to build the existing local content without invoking its content-pull script. The ordinary `npm run build` also includes this section, but its pre-existing content-pull step can update generated PIP/whitepaper mirrors.
+Keep a traceability table `requirement -> code -> test -> evidence`. Mark partial work honestly. Deployment, Mainnet rehearsal and real funding require the actual G5 authorisations. A build passing is not a launch approval.
 
-This task does not commit, push, deploy or notify a publication workflow. Graph refresh is local documentation maintenance, not publication.
+## Completion boundary
 
-[London 0.1.0 contents](index.mdx) · [Decision register](17-open-decisions-and-risk-register.md)
+Deliver a reproducible deployment, a participant-operable node, the verifier, complete runbooks and the pilot report. No automatic app-chain migration, broad decentralisation, custody platform or independent-attestor network is needed to call London implemented. No real participant-owned node or real payout means the core experiment is still incomplete.
+
+[Contents](index.mdx) · [Implementation plan](16-implementation-plan.md) · [Launch inputs](17-open-decisions-and-risk-register.md)

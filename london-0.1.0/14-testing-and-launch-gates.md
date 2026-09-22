@@ -1,45 +1,44 @@
 ---
 id: 14-testing-and-launch-gates
-title: "Testing and launch gates"
+title: "Testing, proof levels and launch gates"
 sidebar_position: 15
 ---
 
-**DRAFT · PROPOSED · IMPLEMENTATION SPECIFICATION**
+**APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
-## Verification strategy
+## Evidence levels
 
-Use the [acceptance catalogue](22-acceptance-test-catalogue.md) as traceability IDs. Backend tests must use contract fixtures and controlled clocks; frontend tests verify displayed evidence state; Move tests verify state/asset invariants. Every result records environment, commit/package digest, policy version, input fixture and observed output. No tests in this documentation task establish deployed application behaviour.
+Use `SPECIFICATION` for these approved requirements; `FIXTURE PASS` for synthetic tests; `STAGING VERIFIED` for deployed sandbox behaviour; `MAINNET VERIFIED` for confirmed real-chain operations; `PILOT OBSERVED` for actual paid listening and independently controlled infrastructure. Never promote one level into another without evidence. All implementation tests below are required future work, not results of authoring these docs.
 
-Contract unit tests cover each role, transition and abort in the Move specification. Property tests generate random allocations, splits and chunk orderings, proving integer conservation, monotone spent budget, no negative/overflow values and no duplicate payout. Integration tests exercise real chosen framework asset APIs, account creation, sponsor restrictions and frozen/failed transfers. Adversarial tests include malicious operator and fabricated validly signed receipts, showing the trust limit rather than incorrectly expecting the chain to prove delivery truth.
+## Release gates
 
-Load tests must include six-hour sessions, long DJ sets, range retries, seeks, partial chunks, VBR renditions, operator failover, midnight crossing, delayed evidence, many recipients and settlement chunk retries. Test 2x the signed pilot capacity for 60 minutes and 4x burst for five minutes; D11 must supply actual concurrency/throughput baseline before the test is executable. Track percentile latency, memory, queue growth, integrity and attribution, not only request success rate.
-
-## Gate order
-
-| Gate | Required proof | Owner |
+| Gate | Required evidence | Owner / prevents |
 |---|---|---|
-| G0 Architecture ratification | D01-D12 closed for launch scope; compatibility departures accepted | Product, engineering, finance, legal |
-| G1 Contract freeze | OpenAPI/schema compatibility, signed-byte golden vectors, independent allocation match | Backend, Move, QA |
-| G2 Staging loop | Authorisation through confirmed test-asset payout and reconciliation | QA/operations |
-| G3 Security/privacy | Independent contract review, custody threat review, DPIA and abuse tests | Security/privacy lead |
-| G4 Commercial/provider | Executed rights/participant terms, provider selected and capability tests, tax/financial-crime review | Legal/finance |
-| G5 Recovery/performance | Restore, key compromise, chain/provider outage drills and capacity proof | Operations |
-| G6 Mainnet rehearsal | Separately authorised bounded company-funded transfer, pinned asset/package and verified recipient | Finance/security |
-| G7 Pilot go/no-go | Signed launch manifest, limits, incident roster and zero unresolved critical/high findings | Accountable launch owner |
+| G0 contracts | Schemas, fixtures, configuration validation and independent canonicalisation agree | Engineering; prevents incompatible implementations |
+| G1 ledger and contract | Allocation properties, idempotence, access controls and immutable commitment tests pass | Backend/Move/QA; prevents lost/duplicated money and mutable proofs |
+| G2 playback and nodes | Browser matrix, full long-form run, peer-fill integrity, restart, timeout and fallback tests pass | Frontend/node/QA; prevents a nominal network that cannot serve |
+| G3 external integrations | Real selected-provider sandbox events, out-of-order replay, pinned asset/framework ABI, recipient ownership | Integration/finance/security; prevents fictional adapter assumptions |
+| G4 recovery and security | Independent security review, restore drill, uncertain transaction drill, key rotation and signer separation | Security/operations; prevents unsafe recovery |
+| G5 production authorisation | Complete release profile, licences, participant terms, provider approvals, finance/legal/privacy sign-offs and bounded funding | Product/finance/legal; prevents unintended real-money launch |
+| G6 bounded Mainnet rehearsal | Approved minimal real transfer, commitment/readback, statement verification and exact reconciliation | Finance/QA; proves selected production path only |
+| G7 pilot completion | Paid demand, independent serving, peer transfer, actual payouts, cost and retention evidence | Product; tests hypotheses without overstating conclusions |
 
-Mainnet rehearsal is future work, not authorization to deploy or move money now. A testnet pass is not a Mainnet pass. A successful Mainnet canary is not broad rollout readiness. No zero-risk claim follows from audit.
+An agent can implement G0-G4 using synthetic configuration. G5 requires real named inputs and human approvals, not guessed defaults. Product approval of the specification is already recorded and must not be relabelled DRAFT because launch inputs remain unfilled.
 
-## Go/no-go checklist
+## Required test layers
 
-- [ ] All production-blocking decisions closed with named approvers and versioned policy.
-- [ ] Rights catalogue and payout accounts approved; no placeholder IDs or test assets.
-- [ ] Exact code, dependencies, chain, asset, custody and package identity pinned.
-- [ ] Conservation, replay, privacy, payment-state and recovery tests passed with evidence.
-- [ ] Funding reconciled, reserves approved, APT budget available, limits active.
-- [ ] Incident ownership, support/dispute handling and operator fallback rehearsed.
-- [ ] Public copy accurately discloses permissioned delivery and trusted attestation.
-- [ ] Pause controls tested; irreversible payment recovery understood and signed off.
+Unit: schema validators, state transitions, grant token bucket, byte/chunk mapping, rights boundaries, timeouts, key intervals and integer allocation. Property: conservation, deterministic ordering, no double credit, no double allocation, no over-reservation, no duplicate payout after any retry/crash sequence, changed canonical byte changes digest. Integration: provider webhook replay, database/outbox atomicity, cache and receipt spool persistence, contract append/readback, statement export permissions and native-USDC reconciliation. Adversarial: IDOR, forged signatures, replay, cross-node/cross-purpose grants, content substitution, SSRF, future timestamps, mismatched addresses/assets and expired signed transaction recovery.
 
-Any unchecked item is no-go. A business override cannot silently relabel missing technical/security/legal evidence as passed.
+Run one real-time three-hour set in staging at 1x speed, plus accelerated boundary fixtures. Exercise a node failure mid-set, peer-filled cache, explicit pause/seek and midnight rollover. Record actual rebuffering and node-switch behaviour. For load rehearsal use 100 concurrent simulated sessions for 30 minutes; label them synthetic, exclude their receipts from production accounting and report resource usage rather than claiming production scale.
 
-[London 0.1.0 contents](index.mdx) · [Decision register](17-open-decisions-and-risk-register.md)
+Browser matrix: current stable Chrome, Firefox and Safari desktop, Safari iOS and Chrome Android at release time. Record exact versions. Audio format support, explicit play gesture, reconnect, keyboard access and proof-download flows must pass. A failure requires a documented supported-browser restriction or format fix before inviting affected users.
+
+## Go / no-go
+
+Go requires all applicable acceptance cases passed with artifact links, no unexplained reconciliation difference, no unresolved critical/high security defect affecting funds or private data, tested backup recovery, approved profile, actual licence/participant coverage, and named operators/support contacts. A single successful payment does not waive replay/recovery tests. No-go if any receipt-to-allocation-to-payment link is missing, signing can bypass approval, node independence is unverified or evidence is unavailable.
+
+## Pilot versus statistical proof
+
+The pilot demonstrates feasibility and provides early demand/participation evidence. It does not establish market-wide demand, profitable decentralisation or adversarial network security. Report cohort size, paid versus subsidised use, renewal opportunities and participant ownership alongside outcomes. Do not invent target conversion/retention percentages after seeing results.
+
+[Contents](index.mdx) · [Implementation plan](16-implementation-plan.md) · [Launch inputs](17-open-decisions-and-risk-register.md)

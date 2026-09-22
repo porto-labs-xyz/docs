@@ -1,0 +1,3080 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.portolabs.xyz/london-0.1.0/artifact-schemas.json",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/EvidenceArtifact"
+    },
+    {
+      "$ref": "#/$defs/AccountingArtifact"
+    },
+    {
+      "$ref": "#/$defs/StatementArtifact"
+    },
+    {
+      "$ref": "#/$defs/IndexArtifact"
+    },
+    {
+      "$ref": "#/$defs/PaymentArtifact"
+    },
+    {
+      "$ref": "#/$defs/CorrectionArtifact"
+    }
+  ],
+  "$defs": {
+    "Error": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "correlation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "correlation_id",
+        "retryable"
+      ]
+    },
+    "Ack": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "recorded",
+            "accepted",
+            "partial",
+            "rejected",
+            "held",
+            "late",
+            "consumed",
+            "closed",
+            "ready"
+          ]
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "reason"
+      ]
+    },
+    "Account": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "listener",
+              "artist",
+              "operator",
+              "admin",
+              "finance"
+            ]
+          }
+        },
+        "entitlement": {
+          "type": "string",
+          "enum": [
+            "active",
+            "pending",
+            "expired",
+            "none"
+          ]
+        },
+        "access_ends_ms": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "maxLength": 20,
+              "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "roles",
+        "entitlement",
+        "access_ends_ms"
+      ]
+    },
+    "CheckoutRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "plan_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "plan_id"
+      ]
+    },
+    "URLResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "expires_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        }
+      },
+      "required": [
+        "url",
+        "expires_ms"
+      ]
+    },
+    "BillingEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "london.v1"
+          ]
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "event_type": {
+          "type": "string",
+          "enum": [
+            "access_active",
+            "access_ended",
+            "payment_cleared",
+            "payment_refunded",
+            "chargeback"
+          ]
+        },
+        "account_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "payment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "subscription_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "period_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "occurred_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "service_start_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "service_end_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "GBP"
+          ]
+        },
+        "gross_pence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "provider_evidence_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "schema_version",
+        "provider",
+        "event_id",
+        "event_type",
+        "account_id",
+        "payment_id",
+        "subscription_id",
+        "period_id",
+        "occurred_ms",
+        "service_start_ms",
+        "service_end_ms",
+        "currency",
+        "gross_pence",
+        "provider_evidence_ref"
+      ]
+    },
+    "Work": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "artist": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "duration_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "rendition_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rights_version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "available": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "artist",
+        "duration_ms",
+        "rendition_id",
+        "rights_version",
+        "available"
+      ]
+    },
+    "Catalogue": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Work"
+          }
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    },
+    "Chunk": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "type": "string",
+          "pattern": "^(init|0|[1-9][0-9]*)$"
+        },
+        "media_start_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "media_end_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "byte_length": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "index",
+        "media_start_ms",
+        "media_end_ms",
+        "byte_length",
+        "sha256"
+      ]
+    },
+    "Manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "london.v1"
+          ]
+        },
+        "work_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rendition_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "manifest_version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "codec": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "duration_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "init": {
+          "$ref": "#/$defs/Chunk"
+        },
+        "chunks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Chunk"
+          }
+        },
+        "key_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$",
+          "description": "Base64url unpadded Ed25519 64-byte signature; decode and verify canonical trailing bits."
+        }
+      },
+      "required": [
+        "schema_version",
+        "work_id",
+        "rendition_id",
+        "manifest_version",
+        "codec",
+        "duration_ms",
+        "init",
+        "chunks",
+        "key_id",
+        "signature"
+      ]
+    },
+    "SessionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "work_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "work_id"
+      ]
+    },
+    "Session": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "work_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rendition_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rights_version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "expires_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "closed"
+          ]
+        },
+        "manifest_url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "work_id",
+        "rendition_id",
+        "rights_version",
+        "expires_ms",
+        "status",
+        "manifest_url"
+      ]
+    },
+    "Empty": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {},
+      "required": []
+    },
+    "GrantRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "chunk_index": {
+          "type": "string",
+          "pattern": "^(init|0|[1-9][0-9]*)$"
+        },
+        "retry_of_grant_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "chunk_index",
+        "retry_of_grant_id"
+      ]
+    },
+    "Grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "london.v1"
+          ]
+        },
+        "grant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "purpose": {
+          "type": "string",
+          "enum": [
+            "playback",
+            "peer_fill",
+            "probe"
+          ]
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_node_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "destination_node_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rendition_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "chunk_index": {
+          "type": "string",
+          "pattern": "^(init|0|[1-9][0-9]*)$"
+        },
+        "manifest_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "issued_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "expires_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "key_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$",
+          "description": "Base64url unpadded Ed25519 64-byte signature; decode and verify canonical trailing bits."
+        }
+      },
+      "required": [
+        "schema_version",
+        "grant_id",
+        "purpose",
+        "session_id",
+        "source_node_id",
+        "destination_node_id",
+        "rendition_id",
+        "chunk_index",
+        "manifest_hash",
+        "nonce",
+        "issued_ms",
+        "expires_ms",
+        "key_id",
+        "signature"
+      ]
+    },
+    "GrantResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "grant": {
+          "$ref": "#/$defs/Grant"
+        },
+        "content_url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "grant",
+        "content_url"
+      ]
+    },
+    "Inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rendition_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "manifest_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "ready_chunks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^(init|0|[1-9][0-9]*)$"
+          }
+        }
+      },
+      "required": [
+        "rendition_id",
+        "manifest_hash",
+        "ready_chunks"
+      ]
+    },
+    "HealthRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "london.v1"
+          ]
+        },
+        "node_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "image_digest": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "observed_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "free_cache_bytes": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "pending_receipts": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "inventory": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Inventory"
+          }
+        }
+      },
+      "required": [
+        "schema_version",
+        "node_id",
+        "image_digest",
+        "observed_ms",
+        "free_cache_bytes",
+        "pending_receipts",
+        "inventory"
+      ]
+    },
+    "HealthResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "pending",
+            "suspended",
+            "retired"
+          ]
+        },
+        "server_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "withdraw_renditions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "next_heartbeat_seconds": {
+          "type": "integer",
+          "const": 20
+        }
+      },
+      "required": [
+        "status",
+        "server_ms",
+        "withdraw_renditions",
+        "next_heartbeat_seconds"
+      ]
+    },
+    "FillRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rendition_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "chunk_index": {
+          "type": "string",
+          "pattern": "^(init|0|[1-9][0-9]*)$"
+        }
+      },
+      "required": [
+        "rendition_id",
+        "chunk_index"
+      ]
+    },
+    "PeerProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "london.v1"
+          ]
+        },
+        "grant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "destination_node_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "GET"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "key_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$",
+          "description": "Base64url unpadded Ed25519 64-byte signature; decode and verify canonical trailing bits."
+        }
+      },
+      "required": [
+        "schema_version",
+        "grant_id",
+        "request_id",
+        "destination_node_id",
+        "method",
+        "path",
+        "key_id",
+        "signature"
+      ]
+    },
+    "ConsumeRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "peer_proof": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PeerProof"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "request_id",
+        "peer_proof"
+      ]
+    },
+    "Consumed": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "grant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "consume_sequence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "consumed_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "deadline_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "expected_bytes": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "chunk_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "grant_id",
+        "request_id",
+        "consume_sequence",
+        "consumed_ms",
+        "deadline_ms",
+        "expected_bytes",
+        "chunk_sha256"
+      ]
+    },
+    "Receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "london.v1"
+          ]
+        },
+        "receipt_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "grant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "node_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "key_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rendition_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "chunk_index": {
+          "type": "string",
+          "pattern": "^(init|0|[1-9][0-9]*)$"
+        },
+        "purpose": {
+          "type": "string",
+          "enum": [
+            "playback",
+            "peer_fill",
+            "probe"
+          ]
+        },
+        "consume_sequence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "bytes_written": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "chunk_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "started_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "ended_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "partial",
+            "failed"
+          ]
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$",
+          "description": "Base64url unpadded Ed25519 64-byte signature; decode and verify canonical trailing bits."
+        }
+      },
+      "required": [
+        "schema_version",
+        "receipt_id",
+        "grant_id",
+        "request_id",
+        "node_id",
+        "key_id",
+        "rendition_id",
+        "chunk_index",
+        "purpose",
+        "consume_sequence",
+        "bytes_written",
+        "chunk_sha256",
+        "started_ms",
+        "ended_ms",
+        "outcome",
+        "signature"
+      ]
+    },
+    "PeerResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "london.v1"
+          ]
+        },
+        "result_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "grant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "source_node_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "destination_node_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rendition_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "chunk_index": {
+          "type": "string",
+          "pattern": "^(init|0|[1-9][0-9]*)$"
+        },
+        "bytes_received": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "chunk_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "key_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$",
+          "description": "Base64url unpadded Ed25519 64-byte signature; decode and verify canonical trailing bits."
+        }
+      },
+      "required": [
+        "schema_version",
+        "result_id",
+        "grant_id",
+        "request_id",
+        "source_node_id",
+        "destination_node_id",
+        "rendition_id",
+        "chunk_index",
+        "bytes_received",
+        "chunk_sha256",
+        "verified",
+        "key_id",
+        "signature"
+      ]
+    },
+    "StatementSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "day_start_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "asset_metadata": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}$"
+        },
+        "allocated_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "paid_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "unpaid_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "provisional",
+            "allocated",
+            "committed",
+            "held",
+            "partially_paid",
+            "paid"
+          ]
+        },
+        "proof_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "day_start_ms",
+        "asset_metadata",
+        "allocated_micro_usdc",
+        "paid_micro_usdc",
+        "unpaid_micro_usdc",
+        "status",
+        "proof_id"
+      ]
+    },
+    "Statements": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StatementSummary"
+          }
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    },
+    "OperatorView": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operator_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "node_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "active",
+            "stale",
+            "suspended",
+            "retired"
+          ]
+        },
+        "accepted_duration_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "peer_fill_bytes": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "earned_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "paid_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "unpaid_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "missing_receipts": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "rejected_receipts": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        }
+      },
+      "required": [
+        "operator_id",
+        "node_ids",
+        "status",
+        "accepted_duration_ms",
+        "peer_fill_bytes",
+        "earned_micro_usdc",
+        "paid_micro_usdc",
+        "unpaid_micro_usdc",
+        "missing_receipts",
+        "rejected_receipts"
+      ]
+    },
+    "BatchStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "evidence",
+            "accounting",
+            "statement-index",
+            "payment-journal",
+            "correction"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "preparing",
+            "frozen",
+            "submitted",
+            "confirmed",
+            "failed",
+            "uncertain"
+          ]
+        },
+        "artifact_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "chain_id": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "package_address": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}$"
+        },
+        "chain_batch_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "transaction_hash": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^0x[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ledger_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "maxLength": 20,
+              "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "status",
+        "artifact_hash",
+        "chain_id",
+        "package_address",
+        "chain_batch_id",
+        "transaction_hash",
+        "ledger_version"
+      ]
+    },
+    "ObjectRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "object_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "sha256",
+        "object_id"
+      ]
+    },
+    "GrantInventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "grant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "purpose": {
+          "type": "string",
+          "enum": [
+            "playback",
+            "peer_fill",
+            "probe"
+          ]
+        },
+        "consume_sequence": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "maxLength": 20,
+              "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "issued",
+            "consumed",
+            "cancelled",
+            "expired",
+            "complete",
+            "partial",
+            "missing"
+          ]
+        },
+        "receipt_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "required": [
+        "grant_id",
+        "purpose",
+        "consume_sequence",
+        "status",
+        "receipt_ids"
+      ]
+    },
+    "ReceiptDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "receipt_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "raw_receipt": {
+          "$ref": "#/$defs/ObjectRef"
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "disposition": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "rejected",
+            "partial",
+            "held",
+            "late"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "grant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "node_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "chunk_index": {
+          "type": "string",
+          "pattern": "^(init|0|[1-9][0-9]*)$"
+        },
+        "credited_duration_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        }
+      },
+      "required": [
+        "receipt_id",
+        "raw_receipt",
+        "revision",
+        "disposition",
+        "reason",
+        "grant_id",
+        "node_id",
+        "session_id",
+        "chunk_index",
+        "credited_duration_ms"
+      ]
+    },
+    "SessionSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "listener_day_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "work_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rights_version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "closed_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "eligible": {
+          "type": "boolean"
+        },
+        "unique_duration_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "held": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "session_id",
+        "listener_day_id",
+        "work_id",
+        "rights_version",
+        "closed_ms",
+        "eligible",
+        "unique_duration_ms",
+        "held"
+      ]
+    },
+    "BudgetInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "budget_day_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "listener_day_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "period_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "funding_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ObjectRef"
+          }
+        },
+        "budget_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "policy_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "held": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "budget_day_id",
+        "listener_day_id",
+        "period_id",
+        "funding_refs",
+        "budget_micro_usdc",
+        "policy_hash",
+        "held"
+      ]
+    },
+    "RightsRecipient": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "beneficiary_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "address": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}$"
+        },
+        "bps": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        }
+      },
+      "required": [
+        "beneficiary_id",
+        "address",
+        "bps"
+      ]
+    },
+    "RightsSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "work_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rights_version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "effective_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "licence_ref": {
+          "$ref": "#/$defs/ObjectRef"
+        },
+        "recipients": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RightsRecipient"
+          }
+        }
+      },
+      "required": [
+        "work_id",
+        "rights_version",
+        "effective_ms",
+        "licence_ref",
+        "recipients"
+      ]
+    },
+    "EconomicPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "policy_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "rights_bps": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "operator_bps": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "porto_bps": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "deduction_policy_ref": {
+          "$ref": "#/$defs/ObjectRef"
+        },
+        "unused_budget_policy_ref": {
+          "$ref": "#/$defs/ObjectRef"
+        }
+      },
+      "required": [
+        "policy_hash",
+        "rights_bps",
+        "operator_bps",
+        "porto_bps",
+        "deduction_policy_ref",
+        "unused_budget_policy_ref"
+      ]
+    },
+    "Contribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "listener_day_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "work_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rights_version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "node_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "operator_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "receipt_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "duration_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        }
+      },
+      "required": [
+        "id",
+        "listener_day_id",
+        "session_id",
+        "work_id",
+        "rights_version",
+        "node_id",
+        "operator_id",
+        "receipt_id",
+        "duration_ms"
+      ]
+    },
+    "AllocationLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "budget_day_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "work_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rights_version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "rights",
+            "operator",
+            "porto"
+          ]
+        },
+        "beneficiary_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_address": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}$"
+        },
+        "contribution_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "duration_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "amount_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "reverses_line_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "budget_day_id",
+        "work_id",
+        "rights_version",
+        "role",
+        "beneficiary_id",
+        "recipient_address",
+        "contribution_ids",
+        "duration_ms",
+        "amount_micro_usdc",
+        "reverses_line_id"
+      ]
+    },
+    "Reserve": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "budget_day_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "unallocated_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "held_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        }
+      },
+      "required": [
+        "budget_day_id",
+        "unallocated_micro_usdc",
+        "held_micro_usdc"
+      ]
+    },
+    "StatementLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allocation_line_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "day_start_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "work_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "rights",
+            "operator"
+          ]
+        },
+        "accepted_duration_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "amount_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        }
+      },
+      "required": [
+        "allocation_line_id",
+        "day_start_ms",
+        "work_id",
+        "role",
+        "accepted_duration_ms",
+        "amount_micro_usdc"
+      ]
+    },
+    "IndexEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "proof_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "statement_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "proof_id",
+        "statement_hash"
+      ]
+    },
+    "PaymentEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "payment_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "allocation_line_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "recipient": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}$"
+        },
+        "amount_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "asset_metadata": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}$"
+        },
+        "chain_id": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "prepared",
+            "approved",
+            "signed",
+            "submitted",
+            "confirmed",
+            "held",
+            "failed",
+            "uncertain",
+            "cancelled"
+          ]
+        },
+        "attempt_index": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "transaction_hash": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^0x[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ledger_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "maxLength": 20,
+              "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "payment_id",
+        "allocation_line_ids",
+        "recipient",
+        "amount_micro_usdc",
+        "asset_metadata",
+        "chain_id",
+        "status",
+        "attempt_index",
+        "transaction_hash",
+        "ledger_version"
+      ]
+    },
+    "EvidenceArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "london.v1"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "evidence"
+          ]
+        },
+        "batch_uuid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "window_start_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "window_end_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "salt": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "grants": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/GrantInventory"
+              }
+            },
+            "receipts": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ReceiptDecision"
+              }
+            },
+            "sessions": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SessionSummary"
+              }
+            },
+            "manifest_refs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ObjectRef"
+              }
+            },
+            "rights_refs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ObjectRef"
+              }
+            },
+            "policy_hashes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          },
+          "required": [
+            "grants",
+            "receipts",
+            "sessions",
+            "manifest_refs",
+            "rights_refs",
+            "policy_hashes"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "batch_uuid",
+        "window_start_ms",
+        "window_end_ms",
+        "salt",
+        "payload"
+      ]
+    },
+    "AccountingArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "london.v1"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "accounting"
+          ]
+        },
+        "batch_uuid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "window_start_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "window_end_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "salt": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "evidence_batch_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "budgets": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/BudgetInput"
+              }
+            },
+            "rights": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/RightsSnapshot"
+              }
+            },
+            "policies": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/EconomicPolicy"
+              }
+            },
+            "contributions": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Contribution"
+              }
+            },
+            "allocations": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/AllocationLine"
+              }
+            },
+            "reserves": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Reserve"
+              }
+            },
+            "correction_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          "required": [
+            "evidence_batch_ids",
+            "budgets",
+            "rights",
+            "policies",
+            "contributions",
+            "allocations",
+            "reserves",
+            "correction_ids"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "batch_uuid",
+        "window_start_ms",
+        "window_end_ms",
+        "salt",
+        "payload"
+      ]
+    },
+    "StatementArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "london.v1"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "statement"
+          ]
+        },
+        "batch_uuid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "window_start_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "window_end_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "salt": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "beneficiary_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "accounting_batch_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "proof_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "recipient_address": {
+              "type": "string",
+              "pattern": "^0x[0-9a-f]{64}$"
+            },
+            "asset_metadata": {
+              "type": "string",
+              "pattern": "^0x[0-9a-f]{64}$"
+            },
+            "chain_id": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "maxLength": 20,
+              "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+            },
+            "lines": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/StatementLine"
+              }
+            },
+            "allocated_micro_usdc": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "maxLength": 20,
+              "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+            }
+          },
+          "required": [
+            "beneficiary_id",
+            "accounting_batch_id",
+            "proof_id",
+            "recipient_address",
+            "asset_metadata",
+            "chain_id",
+            "lines",
+            "allocated_micro_usdc"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "batch_uuid",
+        "window_start_ms",
+        "window_end_ms",
+        "salt",
+        "payload"
+      ]
+    },
+    "IndexArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "london.v1"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "statement-index"
+          ]
+        },
+        "batch_uuid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "window_start_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "window_end_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "salt": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "accounting_batch_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "entries": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/IndexEntry"
+              }
+            }
+          },
+          "required": [
+            "accounting_batch_id",
+            "entries"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "batch_uuid",
+        "window_start_ms",
+        "window_end_ms",
+        "salt",
+        "payload"
+      ]
+    },
+    "PaymentArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "london.v1"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "payment-journal"
+          ]
+        },
+        "batch_uuid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "window_start_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "window_end_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "salt": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "accounting_batch_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "run_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "approved_run_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "entries": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/PaymentEntry"
+              }
+            }
+          },
+          "required": [
+            "accounting_batch_id",
+            "run_id",
+            "approved_run_hash",
+            "entries"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "batch_uuid",
+        "window_start_ms",
+        "window_end_ms",
+        "salt",
+        "payload"
+      ]
+    },
+    "CorrectionArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "london.v1"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "correction"
+          ]
+        },
+        "batch_uuid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "window_start_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "window_end_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "salt": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "target_batch_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "prior_correction_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "reason_code": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "replacement_refs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ObjectRef"
+              }
+            },
+            "ledger_entry_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "approval_ref": {
+              "$ref": "#/$defs/ObjectRef"
+            }
+          },
+          "required": [
+            "target_batch_id",
+            "prior_correction_id",
+            "reason_code",
+            "replacement_refs",
+            "ledger_entry_ids",
+            "approval_ref"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "batch_uuid",
+        "window_start_ms",
+        "window_end_ms",
+        "salt",
+        "payload"
+      ]
+    },
+    "ProofBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "statement": {
+          "$ref": "#/$defs/StatementArtifact"
+        },
+        "index": {
+          "$ref": "#/$defs/IndexArtifact"
+        },
+        "index_commitment": {
+          "$ref": "#/$defs/BatchStatus"
+        },
+        "accounting_commitment": {
+          "$ref": "#/$defs/BatchStatus"
+        },
+        "payment_journals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PaymentArtifact"
+          }
+        },
+        "payment_commitments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BatchStatus"
+          }
+        }
+      },
+      "required": [
+        "statement",
+        "index",
+        "index_commitment",
+        "accounting_commitment",
+        "payment_journals",
+        "payment_commitments"
+      ]
+    },
+    "NodeHealth": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ready": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "ready",
+        "version"
+      ]
+    },
+    "FundingAssignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "period_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "approved_net_pence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "allocated_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        }
+      },
+      "required": [
+        "period_id",
+        "approved_net_pence",
+        "allocated_micro_usdc"
+      ]
+    },
+    "FundingImport": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "provider_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "GBP"
+          ]
+        },
+        "gross_pence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "tax_pence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "fees_pence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "refund_pence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "reserve_pence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "approved_net_pence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "received_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "asset_metadata": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}$"
+        },
+        "deposit_tx_hash": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}$"
+        },
+        "deposit_event_index": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "chain_id": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "assignments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FundingAssignment"
+          }
+        },
+        "approver_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "evidence_ref": {
+          "$ref": "#/$defs/ObjectRef"
+        }
+      },
+      "required": [
+        "id",
+        "provider_ref",
+        "currency",
+        "gross_pence",
+        "tax_pence",
+        "fees_pence",
+        "refund_pence",
+        "reserve_pence",
+        "approved_net_pence",
+        "received_micro_usdc",
+        "asset_metadata",
+        "deposit_tx_hash",
+        "deposit_event_index",
+        "chain_id",
+        "assignments",
+        "approver_id",
+        "evidence_ref"
+      ]
+    },
+    "HoldCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "target_type": {
+          "type": "string",
+          "enum": [
+            "listener_day",
+            "payment",
+            "operator"
+          ]
+        },
+        "target_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "open",
+            "released",
+            "closed_no_credit"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "private_note_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObjectRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "predecessor_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "target_type",
+        "target_id",
+        "action",
+        "reason",
+        "private_note_ref",
+        "predecessor_id"
+      ]
+    },
+    "PayoutApproval": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "run_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "accounting_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "max_micro_usdc": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "approver_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "run_id",
+        "run_hash",
+        "accounting_hash",
+        "max_micro_usdc",
+        "approver_id"
+      ]
+    },
+    "NodeChallenge": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "london.v1"
+        },
+        "node_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "operator_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "public_base_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "public_key_hex": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "issued_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "expires_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$",
+          "description": "Base64url unpadded Ed25519 64-byte signature; decode and verify canonical trailing bits."
+        }
+      },
+      "required": [
+        "schema_version",
+        "node_id",
+        "operator_id",
+        "public_base_url",
+        "public_key_hex",
+        "nonce",
+        "issued_ms",
+        "expires_ms",
+        "signature"
+      ]
+    },
+    "NodeAdmission": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "operator_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "public_base_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "public_key_hex": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "key_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_address": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}$"
+        },
+        "ownership_evidence": {
+          "$ref": "#/$defs/ObjectRef"
+        },
+        "terms_evidence": {
+          "$ref": "#/$defs/ObjectRef"
+        },
+        "challenge": {
+          "$ref": "#/$defs/NodeChallenge"
+        },
+        "approved_by": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "node_id",
+        "operator_id",
+        "public_base_url",
+        "public_key_hex",
+        "key_id",
+        "recipient_address",
+        "ownership_evidence",
+        "terms_evidence",
+        "challenge",
+        "approved_by"
+      ]
+    },
+    "CatalogueImport": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "work": {
+          "$ref": "#/$defs/Work"
+        },
+        "rights": {
+          "$ref": "#/$defs/RightsSnapshot"
+        },
+        "manifest": {
+          "$ref": "#/$defs/Manifest"
+        },
+        "allowed_territories": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          }
+        },
+        "available_from_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "available_until_ms": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "maxLength": 20,
+          "description": "Unsigned u64 decimal; semantic validator enforces maximum 18446744073709551615."
+        },
+        "master_evidence": {
+          "$ref": "#/$defs/ObjectRef"
+        },
+        "approved_by": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "work",
+        "rights",
+        "manifest",
+        "allowed_territories",
+        "available_from_ms",
+        "available_until_ms",
+        "master_evidence",
+        "approved_by"
+      ]
+    }
+  }
+}

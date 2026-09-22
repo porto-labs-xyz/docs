@@ -1,68 +1,67 @@
 ---
 id: 11-data-model-and-event-schemas
-title: "Data model and event schemas"
+title: "Data model, state machines and ledger"
 sidebar_position: 12
 ---
 
-**DRAFT · PROPOSED · IMPLEMENTATION SPECIFICATION**
+**APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
-## Persistent records
+## Persistence conventions
 
-| Entity | Key and constraints | Source of truth |
+Use UUIDv4 primary IDs, UTC timestamps and integer amounts. Numeric wire values larger than safe JavaScript integers are decimal strings. PostgreSQL `numeric(20,0)` holds unsigned u64 amounts; add nonnegative and maximum checks. Durations/times use checked integers. Never reuse an ID. Foreign keys and uniqueness are release requirements, not optional optimisations. Each material record stores schema version, creation timestamp, correlation ID and provenance where appropriate.
+
+| Table | Required fields beyond ID | Constraints |
 |---|---|---|
-| Identity | random listener ID; provider subject unique | Restricted identity store |
-| Subscription | subscription ID; service interval; provider payment references | Finance plus entitlement projection |
-| PaymentEvent | `(provider,event_id)` unique, signed payload digest | Encrypted provider evidence |
-| ConversionLot | instruction ID unique, GBP debit, USDC receipt, state | Reconciled finance ledger |
-| ListenerPeriodBudget | `(subscription_id,day,allocation_version)` unique; no duplicate spent budget | Append-only finance postings |
-| Work/rights/rendition | immutable content identity and version | Catalogue with encrypted clearance evidence |
-| Session | random ID, listener, work, lease generation, expiry | Gateway DB |
-| Grant | random ID, unique nonce digest, exact range, assigned node | Gateway DB, single consume |
-| Receipt | `(operator_id,key_version,receipt_id)` and grant/request uniqueness | Immutable evidence object plus index |
-| Decision | decision ID/revision, input hash, rule hits, approved/held/rejected | Fraud store |
-| EvidenceBatch | batch ID, root, policy, counts, source membership unique | Frozen private manifest and chain commitment |
-| Accrual | allocation ID, listener-day/work/rights/operator attribution | Deterministic private ledger |
-| Settlement/leaf | settlement/index and global payout ID unique | Manifest and on-chain state |
-| Dispute | case ID, revision, actor, affected allocations | Append-only case events |
-| AuditExport | export ID, scope, digest, access expiry | Restricted export store |
+| accounts | provider_subject, roles, status | Unique provider/subject; no PII in chain IDs |
+| subscription_periods | account, provider IDs, start/end, entitlement state, clearance, gross/net GBP | Unique provider period; end greater than start |
+| works / rights_versions | catalogue metadata, licence reference, version, effective time, recipients | Unique work/version; splits sum 10000; append-only history |
+| renditions / chunks | work, manifest hash, codec, duration; chunk index/media interval/size/hash | Unique rendition/index; complete ordered coverage |
+| operators / nodes / node_keys | owner, independence declaration, endpoint, status, payout account, key intervals | One owner per node; approved endpoint; no overlapping active key versions |
+| sessions | account, work, rendition, rights version, start/expiry/close, lease | Partial unique active account; lock for issuance |
+| grants | session or fill destination, node, chunk, purpose, nonce hash, expiry, consume sequence/request/time, cancellation | Unique nonce; one consumption; monotonic coordinator sequence |
+| receipts | receipt ID, grant, raw object/hash, signature, ingest time | Unique ID and one final receipt per consumed grant; conflicting body rejected |
+| decisions | receipt/session, revision, disposition, reason, actor, predecessor | Append-only, one current projection; no raw input mutation |
+| peer_fills | source/destination, grant, receipt hash, verified outcome | Never joins royalty-duration tables |
+| funding_lots | verified deposit, asset, amount, conversion references | Unique deposit evidence; allocated total at most received |
+| budgets | period, lot contributions, B, daily slices, unspent/reserved/allocated | Conserved; unique period funding version |
+| allocation_lines | listener-day, work/rights, role, recipient snapshot, duration, amount, revision | No double allocation; linked reversal/replacement for corrections |
+| batches | kind, period, artifact location/hash, parent/correction, chain state | Unique batch ID; immutable payload after freeze |
+| statements | recipient, accounting batch, private artifact hash, public proof ID | Unique recipient/batch; public ID random and unlinkable across periods |
+| payment_runs / payments | approved hash, approver, cap; recipient, amount, contribution set, state | Each payable contribution reserved once; no duplicate paid obligation |
+| payment_attempts | payment, sender sequence, signed bytes/hash, expiry, outcome, ledger version | Unique sender/sequence and transaction hash; write before broadcast |
+| exceptions / audit / outbox | target, actor, event, payload reference, timestamp | Append-only audit; unique event business key |
 
-Debit/credit journal is append-only and balanced per currency, with `journal_id`, `posting_id`, `account`, signed integer amount, currency, source business ID, reversal link and effective/recorded time. Cross-currency conversion uses linked balanced journals and explicit FX/fee accounts, not a mixed-currency sum. Balances are projections, recomputable from postings. SQL constraints enforce uniqueness; a worker lease does not substitute for a database constraint.
+Database/application permissions prevent update/delete of raw receipts, frozen artifacts, posted monetary entries and audit events. Derived status tables can be rebuilt. Append-only here is an access-controlled database property; chain anchoring adds external tamper evidence. Backups and retained object versions provide availability.
 
-## Event envelope
+## State machines
 
-```json
-{
-  "schema_version": "london.v1",
-  "event_id": "evt_0001",
-  "event_type": "receipt.accepted.v1",
-  "aggregate_id": "rcpt_0001",
-  "aggregate_version": "1",
-  "occurred_at": "2026-09-22T12:00:00Z",
-  "recorded_at": "2026-09-22T12:00:01Z",
-  "correlation_id": "corr_0001",
-  "causation_id": "req_0001",
-  "payload": {"receipt_id":"rcpt_0001","evidence_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
-}
+```mermaid
+stateDiagram-v2
+  [*] --> issued
+  issued --> consumed: Valid node and active authorisation
+  issued --> expired: TTL elapsed
+  issued --> cancelled: Retry or withdrawal
+  consumed --> complete: Valid full receipt
+  consumed --> partial: Short or failed response
+  consumed --> missing: Receipt deadline elapsed
+  complete --> credited: Eligible session and unique chunk
+  complete --> excluded: Duplicate or held session
 ```
 
-Example values are synthetic. Schema validation rejects unknown required-version fields; additive optional fields require compatibility fixtures. Decimal strings contain only canonical digits, no sign/leading zero except zero. Money cannot be a JSON float. IDs in examples are illustrative; production IDs use CSPRNG 128-bit minimum; nonces/salts use 256 bits. Contract IDs are 32-byte domain-separated digests of internal IDs.
+Receipt decisions: `recorded -> accepted | rejected | partial | late | held`. Releasing a hold appends a new decision revision. Eligibility is evaluated on the closed session, not the individual receipt alone. Grant state, receipt state and allocation state are separate columns; do not conflate them in one overloaded status.
 
-## Domain events
+Batch states: `preparing -> frozen -> submitted -> confirmed`, with `failed` retryable against the same payload and `uncertain` requiring reconciliation. A frozen batch may be abandoned before submission, retaining its ID and reason; never reuse that ID with different bytes. A confirmed batch has no editable-content state. Corrections are new batches.
 
-| Event | Required payload beyond envelope | Consequence |
-|---|---|---|
-| `payment.cleared.v1` | payment_id, gross_gbp_minor, provider_record_hash | Reconciliation pending, not funded |
-| `treasury.confirmed.v1` | lot_id, usdc_micro, chain_id, tx_hash, ledger_version | Lot available subject to finance approval |
-| `session.closed.v1` | session_id, closure_reason, manifest_hash | Eligible for evidence evaluation |
-| `fraud.decided.v1` | decision_id, revision, state, policy_hash, evidence_hash | Hold/reject/approve allocation inputs |
-| `batch.committed.v1` | batch_id, evidence_root, transaction/version | Attestation commitment confirmed |
-| `allocation.accrued.v1` | allocation_id, budget_id, usdc_micro, policy_hash | Internal liability only |
-| `settlement.created.v1` | settlement_id, root, total_micro, transaction/version | Reserved on-chain obligation |
-| `payout.confirmed.v1` | payout_id, recipient, asset, amount_micro, tx_hash, ledger_version, event_index | May show paid |
-| `dispute.resolved.v1` | case_id, revision, outcome, adjustment_ids | Correction, not historical overwrite |
+Payment states: `prepared -> approved -> signed -> submitted -> confirmed`; branches `held`, `failed`, `uncertain`, `cancelled`. Cancel only before signing, or after proving a signed attempt cannot succeed. `confirmed` is terminal. Failure is per attempt; obligation remains unpaid until success or an authorised accounting correction closes it.
 
-Consumers enforce per-aggregate monotonically increasing revision. Out-of-order events park until gaps are fetched. Duplicate event IDs do not trigger effects. A contradictory duplicate is a security/reconciliation incident. Store schema/policy version with every output; reprocessing is deterministic under pinned input and policy.
+## Ledger conservation
 
-See [wire contracts](21-wire-and-commitment-contracts.md) for receipt fields, signed bytes and commitment encoding; see `openapi.json` for endpoint request/response validation.
+Use explicit debit/credit postings per business event. Each journal balances in a single asset/currency; never mix GBP and USDC in one numeric balance. Track USDC funding availability, unallocated reserve, artist payables, operator payables, Porto retained share, reserved payouts and confirmed paid amounts. Reconcile chain treasury balances separately from economic attribution. Conversion links GBP and USDC journals through actual provider evidence, not an invented common unit.
 
-[London 0.1.0 contents](index.mdx) · [Decision register](17-open-decisions-and-risk-register.md)
+Invariant for each funded budget: original funded units plus approved additions equal unallocated plus outstanding allocations plus paid allocations plus recorded refunds/reversals, with corrections represented exactly once. Reservations are a subdivision of unpaid allocations, not another expense. Ledger transitions and outbox events commit in one transaction. Run the invariant check after every accounting job and before signing; any mismatch blocks payouts.
+
+## Audit events
+
+Required event families: account/entitlement change; catalogue activation/withdrawal; operator admission/key change/suspension; session/grant issue/consume/cancel; receipt disposition; peer fill verification; hold change; funding import; day close; allocation freeze; commitment submission/confirmation; run approval; payment signed/submitted/confirmed/failed; export access; profile change. Store actor, target, payload digest, reason enum and timestamp. Detailed private notes use separate restricted references.
+
+[Contents](index.mdx) · [Implementation plan](16-implementation-plan.md) · [Launch inputs](17-open-decisions-and-risk-register.md)

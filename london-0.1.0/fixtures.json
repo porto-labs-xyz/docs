@@ -1,0 +1,215 @@
+{
+  "status": "APPROVED",
+  "proof_level": "DOCUMENTATION FIXTURES ONLY",
+  "artifact_examples": [
+    {
+      "schema_version": "london.v1",
+      "kind": "evidence",
+      "batch_uuid": "11111111-1111-4111-8111-111111111111",
+      "window_start_ms": "0",
+      "window_end_ms": "86400000",
+      "salt": "1111111111111111111111111111111111111111111111111111111111111111",
+      "payload": {
+        "grants": [],
+        "receipts": [],
+        "sessions": [],
+        "manifest_refs": [],
+        "rights_refs": [],
+        "policy_hashes": []
+      }
+    },
+    {
+      "schema_version": "london.v1",
+      "kind": "accounting",
+      "batch_uuid": "11111111-1111-4111-8111-111111111111",
+      "window_start_ms": "0",
+      "window_end_ms": "86400000",
+      "salt": "1111111111111111111111111111111111111111111111111111111111111111",
+      "payload": {
+        "evidence_batch_ids": [],
+        "budgets": [],
+        "rights": [],
+        "policies": [],
+        "contributions": [],
+        "allocations": [],
+        "reserves": [],
+        "correction_ids": []
+      }
+    },
+    {
+      "schema_version": "london.v1",
+      "kind": "statement",
+      "batch_uuid": "11111111-1111-4111-8111-111111111111",
+      "window_start_ms": "0",
+      "window_end_ms": "86400000",
+      "salt": "1111111111111111111111111111111111111111111111111111111111111111",
+      "payload": {
+        "beneficiary_id": "11111111-1111-4111-8111-111111111111",
+        "accounting_batch_id": "11111111-1111-4111-8111-111111111111",
+        "proof_id": "11111111-1111-4111-8111-111111111111",
+        "recipient_address": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "asset_metadata": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "chain_id": "0",
+        "lines": [],
+        "allocated_micro_usdc": "0"
+      }
+    },
+    {
+      "schema_version": "london.v1",
+      "kind": "statement-index",
+      "batch_uuid": "11111111-1111-4111-8111-111111111111",
+      "window_start_ms": "0",
+      "window_end_ms": "86400000",
+      "salt": "1111111111111111111111111111111111111111111111111111111111111111",
+      "payload": {
+        "accounting_batch_id": "11111111-1111-4111-8111-111111111111",
+        "entries": []
+      }
+    },
+    {
+      "schema_version": "london.v1",
+      "kind": "payment-journal",
+      "batch_uuid": "11111111-1111-4111-8111-111111111111",
+      "window_start_ms": "0",
+      "window_end_ms": "86400000",
+      "salt": "1111111111111111111111111111111111111111111111111111111111111111",
+      "payload": {
+        "accounting_batch_id": "11111111-1111-4111-8111-111111111111",
+        "run_id": "11111111-1111-4111-8111-111111111111",
+        "approved_run_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+        "entries": []
+      }
+    },
+    {
+      "schema_version": "london.v1",
+      "kind": "correction",
+      "batch_uuid": "11111111-1111-4111-8111-111111111111",
+      "window_start_ms": "0",
+      "window_end_ms": "86400000",
+      "salt": "1111111111111111111111111111111111111111111111111111111111111111",
+      "payload": {
+        "target_batch_id": "11111111-1111-4111-8111-111111111111",
+        "prior_correction_id": null,
+        "reason_code": "fixture",
+        "replacement_refs": [],
+        "ledger_entry_ids": [],
+        "approval_ref": {
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "object_id": "11111111-1111-4111-8111-111111111111"
+        }
+      }
+    }
+  ],
+  "canonical_vectors": [
+    {
+      "name": "empty-evidence",
+      "artifact": {
+        "schema_version": "london.v1",
+        "kind": "evidence",
+        "batch_uuid": "11111111-1111-4111-8111-111111111111",
+        "window_start_ms": "0",
+        "window_end_ms": "86400000",
+        "salt": "1111111111111111111111111111111111111111111111111111111111111111",
+        "payload": {
+          "grants": [],
+          "receipts": [],
+          "sessions": [],
+          "manifest_refs": [],
+          "rights_refs": [],
+          "policy_hashes": []
+        }
+      },
+      "canonical_utf8": "{\"batch_uuid\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"evidence\",\"payload\":{\"grants\":[],\"manifest_refs\":[],\"policy_hashes\":[],\"receipts\":[],\"rights_refs\":[],\"sessions\":[]},\"salt\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"schema_version\":\"london.v1\",\"window_end_ms\":\"86400000\",\"window_start_ms\":\"0\"}",
+      "sha256_domain_prefixed": "758bac760a9353185bef5fa32d58db3be208457ee99769a1f21363a74403eb42"
+    }
+  ],
+  "allocation_vectors": [
+    {
+      "name": "period-days",
+      "amount": "101",
+      "weights": [
+        "1",
+        "1"
+      ],
+      "ids": [
+        "2026-09-22",
+        "2026-09-23"
+      ],
+      "expected": [
+        "51",
+        "50"
+      ]
+    },
+    {
+      "name": "work-split",
+      "amount": "51",
+      "weights": [
+        "1",
+        "2"
+      ],
+      "ids": [
+        "a",
+        "b"
+      ],
+      "expected": [
+        "17",
+        "34"
+      ]
+    },
+    {
+      "name": "pool-A",
+      "amount": "17",
+      "weights": [
+        "6000",
+        "3000",
+        "1000"
+      ],
+      "ids": [
+        "0-rights",
+        "1-operator",
+        "2-porto"
+      ],
+      "expected": [
+        "10",
+        "5",
+        "2"
+      ]
+    },
+    {
+      "name": "pool-B",
+      "amount": "34",
+      "weights": [
+        "6000",
+        "3000",
+        "1000"
+      ],
+      "ids": [
+        "0-rights",
+        "1-operator",
+        "2-porto"
+      ],
+      "expected": [
+        "21",
+        "10",
+        "3"
+      ]
+    },
+    {
+      "name": "operators-A",
+      "amount": "5",
+      "weights": [
+        "1",
+        "2"
+      ],
+      "ids": [
+        "a",
+        "b"
+      ],
+      "expected": [
+        "2",
+        "3"
+      ]
+    }
+  ],
+  "signature_examples": "OpenAPI signatures are schema-only zero-byte placeholders; implementation must generate and independently verify real signature vectors."
+}

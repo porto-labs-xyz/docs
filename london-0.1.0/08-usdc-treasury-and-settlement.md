@@ -1,81 +1,78 @@
 ---
 id: 08-usdc-treasury-and-settlement
-title: "USDC treasury and settlement"
+title: "Funding, accounting and real payouts"
 sidebar_position: 9
 ---
 
-**DRAFT · PROPOSED · IMPLEMENTATION SPECIFICATION**
+**APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
 ## Money states and ownership
 
-```text
-payment_authorised -> payment_cleared -> net_revenue_available
--> conversion_instructed -> treasury_usdc_confirmed -> listener_period_allocated
--> rights_and_operator_accrued -> onchain_settled -> payout_confirmed
+GBP subscriptions are Porto company revenue. Listeners purchase access, receive no USDC balance and own no treasury crypto. A selected provider clears payments; Porto converts approved net revenue in batches to native Aptos USDC. A funded subscription-period budget is an internal allocation record, not a customer wallet. Real provider selection, tax treatment, deductions, reserve and percentage values are required launch inputs in [configuration](26-configuration-and-release-profile.md).
+
+```mermaid
+flowchart TB
+  A[Authorised payment] --> B[Verified clearance]
+  B --> C[Approved net GBP]
+  C --> D[Confirmed treasury USDC]
+  D --> E[Funded period budget]
+  E --> F[Daily allocation]
+  F --> G[Accounting commitment]
+  G --> H[Approved payment run]
+  H --> I[Confirmed artist and operator transfers]
 ```
 
-Each arrow requires an append-only ledger event, evidence reference, unique business ID and authorised actor. Exceptions branch from every state to `held`, `failed`, `refund_pending`, `reversal_recorded` or `recovery_open`; they never erase history. Payment authorisation is not clearance. Clearance does not eliminate chargeback risk. A conversion quote or broadcast transaction is not a confirmed USDC balance.
+Store gross GBP pence, tax/fee/refund/reserve deductions separately, approved net pence, conversion lot reference, actual net USDC received and chain evidence. Do not infer conversion from a displayed FX rate. Allocate a shared conversion lot among eligible subscription periods proportional to their approved net GBP using the largest-remainder algorithm below. Funding requires both verified clearance and a reconciled USDC receipt. Evidence can accrue before funding; monetary allocation waits and remains labelled unfunded.
 
-Porto owns the treasury funds before settlement. Listener allocations are internal attribution budgets, not customer assets, wallets or redeemable crypto balances. Revenue recognition and liability treatment are D01/D04 professional decisions. This document does not decide their legal or accounting character.
+## Deterministic allocation
 
-## Fiat and conversion ledger
+All amounts are unsigned integer micro-USDC in storage/wire; use checked wide intermediates. GBP uses integer pence. Never float. For amount `A` and nonnegative weights `w_i`, compute `q_i=floor(A*w_i/sum(w))`; assign remaining units to descending fractional numerator remainder, ties by ascending canonical ID bytes. If all weights are zero, allocate nothing and preserve the reserve. The sum must equal A whenever positive weights exist.
 
-Record GBP minor units for gross receipts, VAT treatment, processor fee, refunds, chargebacks, reserve withheld/released and net available revenue. Do not assume a tax rate, exemption, fee or reserve percentage. A versioned approved accounting policy specifies whether each deduction reduces allocation or Porto's own margin. Never deduct an item twice.
+1. Freeze the period's funded budget B. Allocate B across UTC service days proportional to exact covered milliseconds, ties by UTC date. This spends the monthly budget once, not once per day.
+2. For each closed, unheld listener-day, sum eligible unique chunk durations per `(work_id, rights_version)`. Allocate that day's budget across those weights. Zero listening leaves that day's budget in a separately tracked unallocated reserve. It does not become Porto profit by default.
+3. Split each work allocation into rights, operator and Porto shares using release-profile basis points summing to 10000, ties in order `rights`, `operator`, `porto`. Production percentages have no default. Existing protocol 70/25/5 is context, not silently ratified here.
+4. Split the rights pool using the snapshotted beneficiary basis points, ties by beneficiary ID. Split the operator pool by eligible duration attributable to each serving node, ties by operator ID. A peer fill earns zero. Porto origin fallback is an explicit operator ID; its portion is recorded as Porto delivery income, not external participation.
+5. Preserve listener-day/work/role contribution lines before aggregating recipient statements. A person earning both roles receives distinct statement lines even if a payment groups them to one address. Porto and origin portions remain in treasury with explicit postings, not self-transfers. No silent redistribution occurs when an operator is suspended.
 
-For each conversion lot record provider instruction/reference, GBP debit, actual FX execution rate, explicit fees, USDC expected/received, destination, chain identity, transaction/version and accounting timestamps. Reconcile provider statement, bank movement and on-chain receipt. Short receipt, wrong asset/network, expired quote or unknown execution holds the lot. Query the provider by immutable idempotency key before retrying an ambiguous instruction. No automated trade or provider call is implemented by this specification.
+Each listener-day has at most one successful allocation revision active; corrections append reversal/replacement ledger entries without deleting the prior record. A held listener-day retains its own budget until resolved. Late funding can allocate a previously closed evidence day in a later accounting run, referenced once by its original day ID.
 
-Native Aptos USDC is fixed to reduce asset, reconciliation and smart-contract surface. An asset symbol is not sufficient. Pin the issuer's native asset metadata identity and chain in deployment configuration, verify decimals and transfer behaviour in rehearsal, reject bridged/lookalike assets. [Circle's contract registry](https://developers.circle.com/stablecoins/usdc-contract-addresses) lists the Aptos Mainnet address `0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b`. Reverify at deployment; this is not a Porto deployment address or provider commitment. Amounts in this specification use integer micro-USDC, subject to that metadata verification gate.
+## Worked example, synthetic economics only
 
-Provider capabilities required: GBP business funding, supported jurisdiction/entity, documented native Aptos USDC withdrawal, signed callbacks plus queryable statements, immutable references, duplicate protection, execution/fee visibility, sanctions and financial-crime processes, redemption/off-ramp terms, outage and recovery procedures. No provider is selected and no eligibility is assumed.
+A 101-unit funded budget covering two equal service days yields 51 and 50. On day one, two works have durations 1:2, yielding 17 and 34. Test-only basis points 6000/3000/1000 split 17 into 10/5/2 and 34 into 21/10/3. Work A's two equal rights holders receive 5 and 5. Its two operators with duration ratio 1:2 receive 2 and 3. Work B's sole artist receives 21 and sole operator 10. Artist totals 31, operator totals 15 and Porto 5 sum to 51. The second day's 50 remains unallocated when nobody listens. None of these test percentages are production terms.
 
-## Funded allocation algorithm
+## Daily closure and approval
 
-D05 must ratify the following proposed method or replace it before production. Let a listener subscription service interval be `[start_ms,end_ms)`. Once its attributable conversion lots are confirmed, assign an immutable integer budget `B` micro-USDC. Allocate B over overlapping UTC days in proportion to service milliseconds, using largest remainder, ties by ascending UTC day. The sum of daily budgets is exactly B. This avoids spending the monthly budget each day. Days before clearance accumulate evidence but cannot settle until funded. A conversion spanning subscriptions uses the same largest-remainder method weighted by approved net GBP, with ties by subscription ID.
-
-After D's evidence watermark, freeze the whole listener-day if any relevant dispute is unresolved. For an unheld day, let `d_w` be accepted unique served duration by work and rights version and `T=sum(d_w)`. If T is zero, leave the day's budget unallocated in a separately tracked reserve; do not silently route it to treasury. D05 must approve eventual unused-budget disposition. Otherwise distribute the day budget in proportion to `d_w` using largest remainder and ties by `(work_id,rights_version)` ascending bytes.
-
-Split each work allocation by ratified rights/operator/treasury basis points summing to 10000, again by largest remainder with tie order rights, operator, treasury. Within rights pool use snapshotted recipient basis points, ties by opaque recipient ID. Within operator pool use accepted unique duration attributed to each serving operator, ties by operator ID. Porto origin fallback uses a separately disclosed operator ID and reward recipient if D06 approves; otherwise hold its operator share pending policy, never redistribute it silently. Rights holders who also operate nodes get two distinct accounting lines.
-
-Aggregate payout lines only after preserving per-listener attribution in the private ledger. Build stable payout IDs and a manifest whose total equals the sum of included unspent budgets. Do not perform monetary arithmetic in floats. Use checked u128 intermediates and checked u64 outputs. Negative adjustments are separate off-chain liabilities.
-
-Synthetic test vector, not approved economics: B=101, two equal days produce 51 and 50. On day one, work durations 1:2 produce 17 and 34. With a test-only 6000/3000/1000 split, 17 produces 10/5/2. All sums conserve exactly. Never use this fixture as production configuration. Existing 70/25/5 is also not pre-approved for London.
-
-## Daily settlement and operator rewards
+Close D's sessions at midnight UTC, receive evidence until 00:10, freeze evidence, then prepare funded unheld accounting. Commit evidence and accounting as separate immutable records so missing funding cannot prevent recording usage. A finance approver independently runs the verifier over full private inputs and checks funding, rights, operator attribution, totals, holds and recipient ownership. Approval binds the exact accounting hash and payment-run hash. Changed bytes invalidate approval.
 
 ```mermaid
 sequenceDiagram
-  participant F as Finance ledger
-  participant B as Allocation builder
-  participant R as Independent reviewer
-  participant C as Aptos settlement
-  participant I as Indexer
-  F->>B: Confirmed lots and unspent day budgets
-  B->>B: Freeze evidence, rights, policy and recipients
-  B->>R: Manifest, root and conservation report
-  R->>C: Approve root and reserve bounded USDC
-  C-->>I: BatchSettled event
-  B->>C: Execute bounded payout leaves
-  C-->>I: PayoutTransferred events
-  I->>F: Confirm asset, amount, recipient and version
+  participant W as Daily worker
+  participant C as Aptos commitments
+  participant F as Finance approver
+  participant S as Restricted signer
+  participant R as Recipients
+  W->>W: Freeze evidence and compute funded allocations
+  W->>C: Append artifact hashes
+  C-->>W: Confirmed commitment
+  W->>F: Frozen run and reconciliation
+  F->>S: Approve exact run hash and cap
+  S->>R: Ordinary native USDC transfers
+  S->>W: Reconcile each confirmed transaction
+  W->>C: Append payment journal hash
 ```
 
-```mermaid
-flowchart LR
-  N[Registered operator] --> E[Unique accepted delivery duration]
-  E --> P[Approved operator pool]
-  P --> H{Held or suspended?}
-  H -->|Yes| Q[Review liability]
-  H -->|No| M[Committed payout leaf]
-  M --> U[Confirmed USDC transfer]
-  U --> D[Paid dashboard row]
-```
+Run payment preparation daily. Require human approval for each run; do not promise instant automatic payouts. Attempt approved runs within one business day. No minimum payout threshold in the pilot: zero lines create no transfer; positive lines remain payable. A failed recipient does not block other recipients, but the dedicated sender lane must resolve its current transaction before advancing.
 
-`onchain_settled` means the obligation root and bounded funds reservation committed successfully. `payout_confirmed` means a successful USDC transfer to the snapshotted recipient was confirmed and reconciled. A batch can be partially paid; display paid and remaining separately. No submitted, pending, timed-out or aborted transaction is paid. USDC receipt is not GBP bank withdrawal or guaranteed redemption access.
+## Safe transfer execution
 
-## Gas and recovery
+Use one dedicated payout account and one serial transaction lane. No manual transfers from that account outside this system. Reserve the run's amount in the local ledger under lock after checking the confirmed balance minus unpaid reservations; gas is funded separately in APT. Contract commitments hold no funds. The payment worker validates the pinned native USDC metadata address, chain ID, approved recipient, amount and cumulative run cap before signing an ordinary framework transfer.
 
-Porto funds the APT gas account from its own operating budget, separately from USDC allocation. [Aptos sponsored transactions](https://aptos.dev/build/guides/sponsored-transactions) allow a fee payer to cover transaction gas. The sponsor validates exact chain, sender, module/function, typed arguments, expiry, simulation result and per-account/day cap. Never sponsor arbitrary caller payloads. A low gas balance pauses execution and alerts operations; no recipient deduction without approved terms.
+Persist immutable payment ID, allocated contribution IDs, recipient snapshot, sender sequence, expiry, exact signed transaction bytes and derived transaction hash durably before network submission. On timeout retry only those identical signed bytes. Query the hash and sender sequence. Never create a fresh transfer because a response was lost. If success is confirmed, reconcile asset, amount and recipient and mark paid exactly once. If confirmed abort, retain the failed attempt, account for gas and create a new attempt for the same obligation after correcting the cause. If absent, do not re-sign until ledger time exceeds expiry and trustworthy chain queries establish that the prior transaction did not succeed. Conflicting or unavailable evidence leaves the lane uncertain and blocked for manual reconciliation. Recovery must survive database restoration; see operations.
 
-Chargeback before funding reduces unallocated availability under approved policy. After accrual it holds affected unpaid allocations. After payment it uses company reserve then recovery review; it cannot reverse the chain. Stablecoin issuer controls, custody, depeg, liquidity, redemption eligibility, tax and jurisdictions remain D01-D04 decisions. `LEGAL/COMPLIANCE REVIEW REQUIRED`: no legal conclusion or regulated-service exemption follows from this proposed ownership model.
+A reconciliation record includes chain ID, transaction hash, ledger version, success status, asset metadata, sender, recipient, amount and observed timestamp. Pending/aborted/wrong-asset transactions are not paid. Attach payment confirmations to a separate append-only journal, anchored after each run; never mutate the previously committed allocation statement.
 
-[London 0.1.0 contents](index.mdx) · [Decision register](17-open-decisions-and-risk-register.md)
+## Exceptions
+
+Refund before conversion reduces unfunded budget availability according to approved terms. Refund/chargeback after funding holds unallocated funds and unpaid affected obligations pending finance review. After payment, Porto bears the immediate reserve/recovery responsibility; transfers are not reversible. No negative payment amounts, customer crypto balances or invented clawback contract. Stablecoin freeze, provider outage and address loss result in a held payable and support record, not an alternate asset chosen by an agent.
+
+[Contents](index.mdx) · [Implementation plan](16-implementation-plan.md) · [Launch inputs](17-open-decisions-and-risk-register.md)

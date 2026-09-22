@@ -1,80 +1,73 @@
 ---
 id: 06-streaming-delivery-and-attestation
-title: "Streaming, delivery and attestation"
+title: "Playback, peer delivery and usage evidence"
 sidebar_position: 7
 ---
 
-**DRAFT · PROPOSED · IMPLEMENTATION SPECIFICATION**
+**APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
 ## Playback authorisation
+
+The coordinator checks authenticated entitlement, territory, active work/rights and one active session per listener. A second session request returns 409 `ACTIVE_SESSION`; the listener may explicitly close the old session first. Sessions expire after two minutes without grant activity, after six hours, at entitlement expiry or at rights/availability boundary, whichever comes first. No browser heartbeat creates monetary evidence.
+
+A grant names one session, one rendition/chunk, one selected node, a random 256-bit nonce, issue/expiry timestamps, and purpose `playback`. TTL is 60 seconds. The node verifies the gateway signature, then calls atomic grant consumption before sending bytes. Consumption requires the matching node credential, active session, current entitlement/availability and unused/unexpired grant. Same grant and same request ID returns the original consume result; a different request ID returns 409. The node must also locally reject a second HTTP stream for the same consumed request, including after restart. Consumed grants cannot be reused to serve bytes.
+
+The gateway allows at most five media chunks (ten seconds) of prefetch credit. Start with ten seconds; replenish at real elapsed time up to that cap; deduct each newly issued chunk's full duration. Retry of the same chunk does not deduct again. Track issuance against the listener session using a database lock. Limit grant issuance to 120/minute/session and session creation to ten/minute/account. Seeking does not reset prefetch credit. No parallel sessions or new-session churn may reset the listener-wide ten-second credit bucket.
 
 ```mermaid
 sequenceDiagram
   participant L as Listener
-  participant G as Gateway
-  participant A as Entitlement and catalogue
-  participant N as Approved delivery node
-  participant O as Private origin fallback
-  L->>G: Create session for work
-  G->>A: Check access, rights, territory and lease
-  A-->>G: Versioned authorisation
-  G-->>L: Session and 60-second scoped grant
-  L->>N: GET exact authorised range
-  N->>G: Consume grant nonce and check active lease
-  G-->>N: Accepted request ID
-  N-->>L: Verified audio bytes
-  alt Node unavailable
-    L->>G: Request replacement route
-    G-->>L: New grant, old unused grant revoked
-    L->>O: GET exact range
-    O-->>L: Verified audio bytes
-  end
+  participant P as Porto coordinator
+  participant N as Participant node
+  participant D as Durable ledger
+  L->>P: Open entitled session and request chunk
+  P-->>L: Signed node-specific grant
+  L->>N: GET chunk with grant
+  N->>P: Consume grant with request ID
+  P->>D: Atomically mark consumed
+  P-->>N: Consumption time and deadline
+  N-->>L: Verified cached audio
+  N->>N: Persist signed receipt in local outbox
+  N->>P: Submit receipt
+  P->>D: Store once and classify
+  P-->>N: Durable receipt ID and disposition
 ```
-
-Use gateway-signed range URLs to Porto-controlled serving endpoints, not direct client S3 URLs. Claims include `schema_version`, `key_id`, `session_id`, `grant_id`, random 256-bit nonce, work/rendition/rights version, exact byte interval, assigned operator, audience, issued/expiry time and lease generation. Ed25519 signature covers canonical bytes specified in [wire contracts](21-wire-and-commitment-contracts.md). Server validates every field, atomically consumes the nonce at request start and persists a request ID. Expired, wrong-node, wrong-range or revoked grants fail closed. Retries request a fresh grant and never double-count media.
-
-Grant TTL is 60 seconds; session idle expiry 120 seconds; maximum session lifetime 6 hours. Refresh uses an authenticated account session and exclusive lease. A grant permits at most 10 seconds of media; rolling unique media authorised cannot exceed session wall-clock elapsed plus a 10-second prebuffer. Server clocks supply elapsed time; at most 5-second clock skew is accepted. This bounds bulk prefetch, but cannot prove attention. All these are proposed configurable defaults requiring launch ratification.
-
-A server-to-server S3 presigned URL may retrieve a pinned object version into an admitted cache, with credentials scoped to exact objects. Never expose S3 listing or write permission to operators. S3 Block Public Access, private policies, encryption, access audit and versioning are mandatory. Evidence and masters use separate buckets and keys.
-
-`CURRENT SOURCE`: [AWS presigned URL guidance](https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html) says presigned URLs are reusable until expiry. They are bearer capabilities. Porto session binding and nonce consumption therefore require the serving layer above S3. No claim of native S3 one-time access is made.
 
 ## Duration and eligibility
 
-The server records actual response bytes written, status, request interval and verified chunk digest. A successful socket write proves only server-observed delivery, not remote decoding or attention. A node's signed statement is an assertion Porto must validate. Do not describe it as independent proof.
+A receipt reports bytes actually written, HTTP outcome and the manifest chunk digest. A complete chunk requires exact declared byte length, successful response, matching consumed grant and receipt arrival within ten minutes of consumption. Transfer ends within 30 seconds of consume time. Require node times within two seconds of coordinator time at the start and ordered start/end inside the allowed interval; clock failures reject the timing claim and remove the node from routing until corrected. The coordinator ingest cutoff and consume sequence remain authoritative; signed node clocks are not independent proof of completion time. Partial/error/cancelled deliveries earn zero unless a complete valid response finished before cancellation. Receipts are assertions, not proof of attention. On-time complete receipts may close an already expired session; expiry prevents further grants, not receipt processing.
 
-Normalize evidence to completed manifest chunks; deduplicate the union of media intervals per `(listener_internal_id, work_id, session_id)` across ranges, retries and operators. A payable chunk must be completely evidenced by one operator, possibly across that operator's contiguous retries. Do not combine partial delivery by different operators into a payable chunk. Attribute each chunk to the first operator completing it, ordered by the gateway request sequence that completed coverage; duplicates earn zero. A fallback can re-serve the complete chunk if no operator completed it. Reject impossible clock intervals and unauthorised chunks. Cap total credited duration by elapsed authorised lease time plus prebuffer, work duration and approved daily account/work limits. Overlapping sessions cannot increase the account's elapsed-time ceiling.
+Credit each `(session_id, chunk_index)` once across all nodes and retries. Pick the valid complete receipt with lowest coordinator-assigned consume sequence; tie by receipt ID. Never use untrusted node clock to break ties. Repeated playback of the same chunk in one session earns zero additional credit. Different complete chunks contribute their manifest duration. A session becomes eligible at `min(30000, floor(work_duration_ms/2))` served milliseconds; all its unique complete chunks then contribute, including those preceding the threshold. Below-threshold sessions remain recorded but receive zero allocation. The init segment always contributes zero.
 
-A session is eligible when approved unique duration reaches `min(30000, floor(work_duration_ms / 2))`, with positive registered duration. If it qualifies, credit its approved unique duration, including the initial threshold interval; if it does not, credit zero. Client playheads/heartbeats affect UX only. Repeated media within a session earns zero additional duration. A new session can qualify again only within the policy's account/work daily cap.
+Associate a chunk with the UTC day containing coordinator consume time. Sessions close at UTC midnight, so daily attribution and eligibility are unambiguous; the player silently opens a new session and continues. At day D + 00:10, all preceding-day receipts reach their cutoff. Late receipts are retained as late, never silently inserted in a frozen batch. A support correction can link a supplementary artifact, but cannot rewrite paid history. A session also closes on explicit stop, work change, timeout or failure.
 
-A session crossing midnight is evaluated once at closure; qualifying duration is partitioned by server delivery time across UTC service days and rights versions. No daily slice is published until the session closes or expires. A six-hour session can therefore delay its prior-day inputs, covered by the close watermark below.
+## Peer cache fill, required pilot path
 
-## Receipt to batch
+Porto selects an active source node with verified inventory, and issues purpose `peer_fill` grants bound to source node, destination node and one chunk/init segment. The destination authenticates to Porto with its own credential, receives the signed grant and makes HTTPS GET to the source. The source atomically consumes it using its own node identity. The destination verifies content against the signed manifest before admitting it to cache, and submits a signed fill result linking both node IDs, grant, digest, size and outcome. TTL is 60 seconds; transfer deadline 30 seconds; at most four concurrent fills per destination. Refresh grants for further chunks, never issue whole-bucket access.
 
 ```mermaid
 sequenceDiagram
-  participant N as Node
-  participant E as Evidence ingest
-  participant F as Fraud and attestation
-  participant B as Batch builder
-  participant C as Aptos registry
-  N->>E: Signed receipt with grant/request IDs
-  E->>E: Verify signature, durable write, deduplicate
-  E-->>N: Accepted receipt ID, not eligible status
-  E->>F: Durable outbox event
-  F->>F: Reconcile server evidence and versioned policy
-  F->>B: Approved session segments and decision IDs
-  B->>B: Freeze salted evidence manifest
-  B->>C: Trusted attestor commits root
-  C-->>B: Committed success and version
+  participant P as Porto coordinator
+  participant A as Artist node
+  participant B as Other-party node
+  participant L as Listener
+  B->>P: Request missing chunk
+  P-->>B: Grant naming source A and destination B
+  B->>A: Fetch authorised chunk
+  A->>P: Consume peer grant
+  A-->>B: Chunk bytes
+  B->>B: Verify manifest hash and persist
+  B->>P: Signed fill result and inventory
+  P-->>L: Playback grant for B
+  B-->>L: Serve real playback
 ```
 
-Receipt arrival deadline is 24 hours after service-day end. Day D freezes at D+2 00:00 UTC, once maximum session age, receipt deadline and queue reconciliation have elapsed. Runs are daily, with this explicit delay. Late evidence enters review; accepted late evidence requires an adjustment against remaining funded budgets, never rewriting a closed root. No batch may contain unresolved sessions. Batch transport target is 60 seconds or 500 closed-session records, distinct from daily economic finalisation. Split transactions to measured chain limits; these targets are not claimed capacity.
+A failed peer fill retries once, then uses Porto origin via a new scoped grant. Record the source transition. Peer fills, warming, probes and test traffic are excluded from listening and operator reward duration. Retain them as infrastructure metrics only. Serving cached content to eligible real playback earns the same rate regardless of whether origin or a peer supplied the cache.
 
-## Evidence custody
+## Receipt to batch
 
-Encrypted raw receipts and signed manifests are immutable with content hashes and retention locks compatible with the approved retention policy. Proposed retention: raw IP/operational access logs 30 days, pseudonymised evidence 180 days, financial/audit records 7 years, subject to D08 professional review before production. Separate identity mappings and destroy them at approved expiry unless under documented legal hold. Never put raw evidence or unsalted listener hashes on-chain. Authorised dispute export includes relevant receipts, grant lineage, hash manifest, policy and allocation versions, with listener identifiers redacted. Access is logged and expires after 15 minutes. A retention lock must not be enabled before legal/privacy review of duration and erasure handling.
+The same backend validates receipt schema, signature/key interval, grant purpose/consumption, byte count, timing and duplicate identity. Store raw signed input plus a separate decision record. Missing receipts and held sessions remain visible in the daily inventory. Evidence preparation freezes accepted, rejected, partial, late and missing dispositions rather than hiding failures. The approved eligible subset alone feeds accounting.
 
-See [glossary](glossary.md) for exact state meanings. `CURRENT SOURCE`: PIP-4 §§2,3,5 supplies threshold, server-evidence intent and batching context; London changes the byte accounting, schema and trust boundary.
+No separate attestation service or fraud-review product is required. The term “attested” may describe a Porto acceptance decision only when its centralised trust is explicit. Prefer “recorded”, “eligible” and “committed” in the UI.
 
-[London 0.1.0 contents](index.mdx) · [Decision register](17-open-decisions-and-risk-register.md)
+[Contents](index.mdx) · [Implementation plan](16-implementation-plan.md) · [Launch inputs](17-open-decisions-and-risk-register.md)

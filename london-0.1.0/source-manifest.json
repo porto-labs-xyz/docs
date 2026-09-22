@@ -1,5 +1,5 @@
 {
-  "status": "DRAFT",
+  "status": "APPROVED",
   "review_date": "2026-09-22",
   "sources": [
     {
@@ -95,5 +95,6 @@
         "4. Migration path"
       ]
     }
-  ]
+  ],
+  "approval_scope": "London 0.1.0 implementation specification, not deployment or canonical PIP amendment"
 }

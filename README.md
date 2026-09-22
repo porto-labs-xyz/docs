@@ -2,7 +2,7 @@
 
 Source for [docs.portolabs.xyz](https://docs.portolabs.xyz), built with [Docusaurus](https://docusaurus.io).
 
-The London 0.1.0 draft implementation specification is maintained in `london-0.1.0/` and included in the current site build at `/london-0.1.0/overview`. It is a proposal, not an approved or deployed architecture.
+The London 0.1.0 approved implementation specification is maintained in `london-0.1.0/` and included in the current site build at `/london-0.1.0/overview`. It is approved for implementation of the bounded peer-delivery MVP. Approval does not imply deployment, audit completion or real-money launch authorisation.
 
 Existing canonical protocol content is mirrored: `docs/whitepaper.md` and `docs/pips/` are generated at build time by `scripts/pull-content.mjs`, which clones:
 
@@ -37,6 +37,6 @@ Copyright © 2026 Entropy Tech Ltd.
 
 The documentation content is licensed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/). Porto names, logos, and other trademarks are not licensed under this licence. The Docusaurus site code and third-party dependencies retain their respective licences.
 
-## London draft validation
+## London specification validation
 
 Run `npm exec docusaurus build` to validate the current local site, including London, without pulling or modifying generated PIP/whitepaper mirrors. The normal `npm run build` includes London too, and retains its existing upstream content-pull step. See `london-0.1.0/index.mdx`.
