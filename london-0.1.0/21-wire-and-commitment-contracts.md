@@ -45,7 +45,7 @@ PeerProof uses the peer-request domain and signs its full object without signatu
 4. Execute approved payments. Publish a separate payment-journal commitment after run reconciliation, including unresolved lines if necessary. Further confirmations append a new journal; old statements/journals remain unchanged.
 5. Correct with new kind-5 records linking prior commitments. A correction never removes an earlier artifact or transaction.
 
-A SQL append-only table alone is not the public immutability proof. The external chain commitment makes a changed retained file detectable after publication. It cannot recover lost files, establish unrecorded activity or prove honest listening. Publishing a later correction is visible, not silent rewriting.
+An application-protected RocksDB journal alone is not the public immutability proof. The external chain commitment makes a changed retained file detectable after publication. It cannot recover lost files, establish unrecorded activity or prove honest listening. Publishing a later correction is visible, not silent rewriting.
 
 ## Artist verification
 

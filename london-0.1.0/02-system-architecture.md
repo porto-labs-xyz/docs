@@ -8,19 +8,20 @@ sidebar_position: 3
 
 ## Deployment boundaries
 
-The web application calls Porto over HTTPS. Porto owns a modular API and job worker codebase, a relational ledger, private S3 origin in London, and separately permissioned evidence storage. Each participant owns its node host, local cache, node key and outbound connectivity. Porto holds no operator hosting credentials. Operators receive no origin-bucket credentials, listener identity, payment information or treasury key.
+The web application calls Porto over HTTPS. Porto owns a modular API and job worker codebase, a deterministic RocksDB ledger, private S3 origin in London, and separately permissioned evidence storage. Each participant owns its node host, local cache, node key and outbound connectivity. Porto holds no operator hosting credentials. Operators receive no origin-bucket credentials, listener identity, payment information or treasury key.
 
-Use PostgreSQL transactions and a transactional outbox. Run the payment signer as a separately permissioned worker from the same codebase. It alone can request payout signatures. Node software is a container with persistent cache and receipt spool volumes. Pin image digests; do not require Kubernetes, a service mesh or a distributed queue for this pilot. Language/framework choices are implementation ADRs; they must preserve these contracts and may not change product scope.
+Use one writable RocksDB TransactionDB owned by the backend ledger module, a serial command executor and an atomic journal/state/outbox commit. All workers access typed commands and queries through the owner; no worker opens database files. The exact ownership, key encoding, durability, replay and checkpoint contract is in [the ledger specification](27-deterministic-rocksdb-ledger.md). Run the payment signer as a separately permissioned worker from the same codebase. It alone can request payout signatures. Node software is a container with persistent cache and receipt spool volumes. Pin image digests; do not require Kubernetes, a service mesh or a distributed queue for this pilot. Language/framework choices are implementation ADRs; they must preserve these contracts and may not change product scope.
 
 ```mermaid
 flowchart TB
   subgraph Porto[Porto-controlled]
     UI[Web app] --> API[API and playback coordinator]
-    API --> DB[(PostgreSQL ledger and outbox)]
+    API --> L[Deterministic ledger owner]
+    L --> DB[(RocksDB journal and state)]
     API --> OR[(Private origin)]
-    DB --> W[Accounting and commitment worker]
+    L --> W[Accounting and commitment worker]
     W --> EV[(Private evidence files)]
-    DB --> S[Restricted payment worker]
+    L --> S[Restricted payment worker]
   end
   subgraph Participants[Participant-controlled]
     A[Artist node] -->|Scoped peer grant| B[Other-party node]

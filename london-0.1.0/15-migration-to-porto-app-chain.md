@@ -14,12 +14,18 @@ The earlier broad draft's migration programme is replaced by a small portability
 
 ```mermaid
 flowchart TB
-  L[London on Aptos] --> E[Retain evidence and ledger exports]
+  L[London on Aptos] --> E[Deterministic ledger and portable checkpoint]
   E --> R[Future business and security review]
   R --> D{Separate approval}
   D -->|Not justified| L
   D -->|Approved later| S[New migration specification]
 ```
+
+## Deterministic ledger as the migration boundary
+
+London now builds the RocksDB ledger, pure state-transition functions, canonical command journal, deterministic replay and portable checkpoint format as its first milestone. A later sovereign chain could replace Porto command ordering with consensus while preserving compatible domain rules. PostgreSQL is no longer the authoritative-store choice for London.
+
+The reusable contract is logical state and execution semantics. Shared use of RocksDB does not guarantee identical storage layout, code reuse in a Move VM, consensus safety or an asset bridge. The future migration must choose which state is replicated, preserve private data boundaries and test a deterministic conversion if the target runtime differs. Required now: export/import and replay in a clean local engine with matching digests. Deferred: actual genesis admission, consensus integration, validator operation and live chain cutover.
 
 ## Preserve only useful boundaries
 

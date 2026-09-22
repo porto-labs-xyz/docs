@@ -45,7 +45,8 @@
     "backend_commit",
     "incident_contacts_ref",
     "approval_refs",
-    "gate_evidence"
+    "gate_evidence",
+    "ledger"
   ],
   "properties": {
     "schema_version": {
@@ -298,6 +299,70 @@
           "minLength": 1
         }
       }
+    },
+    "ledger": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "engine": {
+          "const": "rocksdb_transactiondb"
+        },
+        "rocksdb_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "binding_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "logical_schema_version": {
+          "const": "1"
+        },
+        "ruleset_version": {
+          "const": "london.ledger.v1"
+        },
+        "write_policy": {
+          "const": "write_committed"
+        },
+        "wal_enabled": {
+          "const": true
+        },
+        "sync_writes": {
+          "const": true
+        },
+        "active_owners": {
+          "const": 1
+        },
+        "command_executors": {
+          "const": 1
+        },
+        "backup_location_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "fencing_procedure_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "engine",
+        "rocksdb_version",
+        "binding_version",
+        "logical_schema_version",
+        "ruleset_version",
+        "write_policy",
+        "wal_enabled",
+        "sync_writes",
+        "active_owners",
+        "command_executors",
+        "backup_location_ref",
+        "fencing_procedure_ref"
+      ]
     }
   }
 }

@@ -1,0 +1,161 @@
+{
+  "status": "APPROVED",
+  "proof_level": "DOCUMENTATION HASH FIXTURES ONLY; no RocksDB execution, crash or replay tests performed; isolated encoding examples, not a complete business transition trace",
+  "commands": [
+    {
+      "schema_version": "london.v1",
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "command_type": "CloseDay",
+      "actor_id": "22222222-2222-4222-8222-222222222222",
+      "admitted_at_ms": "87000000",
+      "ruleset_version": "london.ledger.v1",
+      "expected_revisions": [
+        {
+          "state_key": "day/00000000000000000000",
+          "revision": null
+        }
+      ],
+      "payload": {
+        "day_start_ms": "0",
+        "day_end_ms": "86400000"
+      },
+      "evidence_hashes": []
+    }
+  ],
+  "journal_vectors": [
+    {
+      "entry": {
+        "sequence": "1",
+        "previous_entry_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "command": {
+          "schema_version": "london.v1",
+          "command_id": "11111111-1111-4111-8111-111111111111",
+          "command_type": "CloseDay",
+          "actor_id": "22222222-2222-4222-8222-222222222222",
+          "admitted_at_ms": "87000000",
+          "ruleset_version": "london.ledger.v1",
+          "expected_revisions": [
+            {
+              "state_key": "day/00000000000000000000",
+              "revision": null
+            }
+          ],
+          "payload": {
+            "day_start_ms": "0",
+            "day_end_ms": "86400000"
+          },
+          "evidence_hashes": []
+        },
+        "outcome": "accepted",
+        "result": {
+          "code": "DAY_CLOSED",
+          "entity_ids": [],
+          "amount_micro_usdc": null
+        },
+        "delta_hash": "519e5c16c4445a354368fbe74b8e75f7e18d3b3f60fe9defb487753b2be95677",
+        "entry_hash": "6a454ebdf32e224358b5b47db498dee65d6cc0a4ff7b91ee2b7cb6e88c1ff99d"
+      },
+      "delta": [
+        {
+          "column_family": "command_result",
+          "key": "11111111-1111-4111-8111-111111111111",
+          "value": {
+            "schema_version": "london.v1",
+            "envelope_hash": "ed6d632dbc644ae7102b9866097816eecdaf538323b536cefdf2506165fb2da5",
+            "sequence": "1",
+            "result": {
+              "code": "DAY_CLOSED",
+              "entity_ids": [],
+              "amount_micro_usdc": null
+            }
+          }
+        },
+        {
+          "column_family": "state",
+          "key": "day/00000000000000000000",
+          "value": {
+            "schema_version": "london.v1",
+            "revision": "1",
+            "status": "closed",
+            "day_start_ms": "0",
+            "day_end_ms": "86400000"
+          }
+        }
+      ]
+    }
+  ],
+  "checkpoint_vectors": [
+    {
+      "checkpoint": {
+        "schema_version": "london.v1",
+        "checkpoint_id": "22222222-2222-4222-8222-222222222222",
+        "ruleset_version": "london.ledger.v1",
+        "logical_schema_version": "1",
+        "sequence": "1",
+        "last_entry_hash": "6a454ebdf32e224358b5b47db498dee65d6cc0a4ff7b91ee2b7cb6e88c1ff99d",
+        "logical_state_hash": "cacd9dbd599d06db5df536154ba037d39393707600ffcfc7119680469c3e7463",
+        "files": [
+          {
+            "kind": "logical_state",
+            "object_id": "11111111-1111-4111-8111-111111111111",
+            "sha256": "dcbcaa177be00ff10ceeca09d8a5a7e5ccd8d7818db9a7d531064469cf55e4bc",
+            "byte_length": "464",
+            "start_sequence": "1",
+            "end_sequence": "1"
+          },
+          {
+            "kind": "journal",
+            "object_id": "33333333-3333-4333-8333-333333333333",
+            "sha256": "a06f13b4511d485b2d012c2d41caeba3ef90bcb83e45b73ed0aade2d218badac",
+            "byte_length": "750",
+            "start_sequence": "1",
+            "end_sequence": "1"
+          },
+          {
+            "kind": "events",
+            "object_id": "44444444-4444-4444-8444-444444444444",
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "byte_length": "2",
+            "start_sequence": "1",
+            "end_sequence": "1"
+          }
+        ],
+        "parent_checkpoint_id": null,
+        "private_aux_excluded": true
+      },
+      "rows": [
+        {
+          "column_family": "command_result",
+          "key": "11111111-1111-4111-8111-111111111111",
+          "value": {
+            "schema_version": "london.v1",
+            "envelope_hash": "ed6d632dbc644ae7102b9866097816eecdaf538323b536cefdf2506165fb2da5",
+            "sequence": "1",
+            "result": {
+              "code": "DAY_CLOSED",
+              "entity_ids": [],
+              "amount_micro_usdc": null
+            }
+          }
+        },
+        {
+          "column_family": "state",
+          "key": "day/00000000000000000000",
+          "value": {
+            "schema_version": "london.v1",
+            "revision": "1",
+            "status": "closed",
+            "day_start_ms": "0",
+            "day_end_ms": "86400000"
+          }
+        }
+      ]
+    }
+  ],
+  "command_hashes": [
+    {
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "hash": "ed6d632dbc644ae7102b9866097816eecdaf538323b536cefdf2506165fb2da5"
+    }
+  ]
+}

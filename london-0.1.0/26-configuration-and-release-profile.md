@@ -35,6 +35,10 @@ These are implementation defaults approved for this bounded MVP, not measured se
 | minimum_payout_micro_usdc | 1; zero creates no transfer |
 | payout_sender_lanes | 1 serial account, one unresolved transaction at a time |
 
+## Ledger configuration
+
+Required storage choice is `rocksdb_transactiondb`, write policy `write_committed`, `wal_enabled=true`, `sync_writes=true`, `active_owners=1`, `command_executors=1`. The production profile pins engine/binding versions, logical schema/ruleset version, backup location reference and fencing procedure. No configuration can disable WAL/sync, enable multiple owners or bypass typed commands. Benchmark only under these durability settings. See [ledger limits and key layout](27-deterministic-rocksdb-ledger.md).
+
 ## Production profile, mandatory fields
 
 A private JSON release profile contains: release ID; environment; approved-by records; effective timestamp; legal entity and territory list; identity/billing provider names and verified event mapping; GBP plan ID/price/service-period rules; finance deduction/reserve/refund/unused-budget policy references; `rights_bps`, `operator_bps`, `porto_bps` summing to 10000; conversion/custody provider references; chain ID; native-USDC metadata address; commitment package address; pinned transfer ABI and SDK/framework revisions; RPC endpoints; signer/admin account references; max pilot/run/recipient amounts; approved retention durations; production site/coordinator URLs; node image/backend commit digests; incident contacts and G0-G6 evidence links.

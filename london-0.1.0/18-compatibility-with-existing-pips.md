@@ -30,6 +30,10 @@ Canonical sources are pinned in [source manifest](source-manifest.json) and link
 
 The previous draft's separate fraud/attestation boundaries, six Move modules, Merkle payout claims, automated dispute lifecycle and executable migration planning are replaced, not optional parallel implementation paths. Preserve daily accounting, private evidence, real USDC, permissioned delivery and proof boundaries. Existing route/file names remain stable where useful for links, even when their chapter title now reflects a smaller scope.
 
+## Storage decision supersession
+
+The approved RocksDB deterministic ledger supersedes PostgreSQL references in the preceding London revision. This is an internal implementation architecture change, not a canonical PIP amendment or a claim that RocksDB provides consensus. The engine, journal and portable state boundary are first-priority work; sovereign-chain deployment remains deferred.
+
 ## Impact on messaging and design
 
 Public statements must distinguish approved specification, implemented software and observed pilot results. Do not relabel prototype node badges or simulated payouts as live because this document is approved. The approved pilot includes actual participant control and actual node-to-node transfer, but it does not demonstrate independent attestation, permissionless serving or Porto consensus.

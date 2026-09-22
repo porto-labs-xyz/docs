@@ -6,6 +6,10 @@ sidebar_position: 2
 
 **APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
+## Build the ledger first
+
+The [deterministic RocksDB ledger](27-deterministic-rocksdb-ledger.md) is the centre of this architecture and the first implementation milestone. Streaming, accounting and payout state advance through explicit, replayable commands. One Porto owner orders them today; a future sovereign runtime can take over ordering under separately specified consensus rules. The migration asset is the logical ledger and transition semantics, not a promise to copy database files into a blockchain.
+
 ## Approved architecture
 
 London is a deliberately small music delivery and accounting network. Porto runs the catalogue, subscriptions, routing, accounting and payout coordination. Artists and other invited parties operate delivery nodes on infrastructure they control. Aptos supplies the external ledger for commitments and USDC transfers.
@@ -18,7 +22,7 @@ flowchart TB
   P --> N[Independent delivery node]
   A[Artist-owned node] -->|Authorised cache fill| N
   O[Private Porto origin] -->|Seed and fallback| A
-  N -->|Signed receipt| B[Porto backend]
+  N -->|Signed receipt| B[Deterministic ledger engine]
   B --> E[Retained evidence and accounting]
   E -->|Hashes| C[Aptos commitments]
   B -->|Reviewed USDC transfers| R[Artists and operators]
@@ -46,6 +50,6 @@ Use this public description: “Porto's London pilot uses independently operated
 
 ## Smallest implementation
 
-One web application; one modular backend plus workers; PostgreSQL; private origin and evidence object storage; one containerised node package; one append-only Move commitment module; one payment-provider adapter and one treasury conversion adapter. A CLI is sufficient for catalogue import, operator admission, holds, run approval and exports. Do not build an admin product merely to avoid a documented manual operation.
+One web application; one modular backend with a single RocksDB ledger owner plus restricted workers; private origin and evidence object storage; one containerised node package; one append-only Move commitment module; one payment-provider adapter and one treasury conversion adapter. A CLI is sufficient for catalogue import, operator admission, holds, run approval and exports. Do not build an admin product merely to avoid a documented manual operation.
 
 [Contents](index.mdx) · [Implementation plan](16-implementation-plan.md) · [Launch inputs](17-open-decisions-and-risk-register.md)

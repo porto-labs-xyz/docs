@@ -4,6 +4,8 @@ Source for [docs.portolabs.xyz](https://docs.portolabs.xyz), built with [Docusau
 
 The London 0.1.0 approved implementation specification is maintained in `london-0.1.0/` and included in the current site build at `/london-0.1.0/overview`. It is approved for implementation of the bounded peer-delivery MVP. Approval does not imply deployment, audit completion or real-money launch authorisation.
 
+The first implementation target is the [deterministic RocksDB ledger](london-0.1.0/27-deterministic-rocksdb-ledger.md): strict domain commands, atomic journal/state/outbox, replay and portable checkpoints. This replaces the earlier PostgreSQL storage choice.
+
 Existing canonical protocol content is mirrored: `docs/whitepaper.md` and `docs/pips/` are generated at build time by `scripts/pull-content.mjs`, which clones:
 
 - [`porto-labs-xyz/whitepaper`](https://github.com/porto-labs-xyz/whitepaper) → `/whitepaper`

@@ -52,6 +52,14 @@ Every case below must have automated coverage where deterministic, or a retained
 | A38 | Approved Mainnet rehearsal | Real native-USDC recipient receipt and commitment readback with no unexplained difference |
 | A39 | Paid participant pilot | Real cleared payments, listener return/renewal observations, artist and independent-party serving |
 | A40 | Participant economics and exit | Actual cost/reward/subsidy/time separated; willingness to continue and successful revocation recorded |
+| A41 | Same checkpoint and ordered commands in two clean engines | Identical accepted/rejected outcomes, journal head and logical-state digest; no clock/network/random dependency |
+| A42 | Crash before/during/after synchronous ledger commit | Journal, state, unique keys, result and outbox all appear together or not at all; recovery queries command ID |
+| A43 | Duplicate command, changed body, stale revision and competing reservation | Exact retry returns original result; conflict/stale reject; funds cannot be double-reserved |
+| A44 | Rebuild indexes and replay after compaction/checkpoint restore | Same logical state/digest regardless of physical file layout; no historical external effect executes |
+| A45 | Disk-full, WAL/sync disabled, corrupt backup or unsupported binding | Fail closed and alert; no acknowledged nondurable financial mutation or unsafe configuration |
+| A46 | Promote replacement while former owner may still run | Promotion refused until fenced; one active owner and signing boundary demonstrated |
+| A47 | Export/import logical checkpoint with private auxiliary records present | Matching logical digest and history references; private auxiliary data excluded from chain-portable export |
+| A48 | Restore before a confirmed payout observation | External payment journal/chain reconciliation restores status before dispatch; no duplicate payment |
 
 ## Required monetary fault injection
 

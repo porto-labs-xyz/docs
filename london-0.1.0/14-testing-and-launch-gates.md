@@ -15,7 +15,7 @@ Use `SPECIFICATION` for these approved requirements; `FIXTURE PASS` for syntheti
 | Gate | Required evidence | Owner / prevents |
 |---|---|---|
 | G0 contracts | Schemas, fixtures, configuration validation and independent canonicalisation agree | Engineering; prevents incompatible implementations |
-| G1 ledger and contract | Allocation properties, idempotence, access controls and immutable commitment tests pass | Backend/Move/QA; prevents lost/duplicated money and mutable proofs |
+| G1 ledger and contract | RocksDB atomicity/durability, deterministic replay, checkpoint/restore, allocation properties, idempotence, access controls and immutable commitment tests pass | Backend/Move/QA; prevents lost/duplicated money and mutable proofs |
 | G2 playback and nodes | Browser matrix, full long-form run, peer-fill integrity, restart, timeout and fallback tests pass | Frontend/node/QA; prevents a nominal network that cannot serve |
 | G3 external integrations | Real selected-provider sandbox events, out-of-order replay, pinned asset/framework ABI, recipient ownership | Integration/finance/security; prevents fictional adapter assumptions |
 | G4 recovery and security | Independent security review, restore drill, uncertain transaction drill, key rotation and signer separation | Security/operations; prevents unsafe recovery |

@@ -24,6 +24,10 @@ The pinned [source manifest](source-manifest.json) contains exact SHA-256 hashes
 
 External technical references inform implementation review; they are not provider agreements or proof of a deployed Porto integration. Pin actual framework/SDK/issuer asset references in L07 before Mainnet. Do not copy a native-USDC address from an example or assume any token named USDC is the approved asset.
 
+## Storage-engine references
+
+[RocksDB Transactions](https://github.com/facebook/rocksdb/wiki/Transactions) documents TransactionDB and explicit read/write conflict protection. [Basic Operations](https://github.com/facebook/rocksdb/wiki/Basic-Operations) documents synchronous writes and process ownership. [Backup guidance](https://github.com/facebook/rocksdb/wiki/How-to-backup-RocksDB) documents engine backup facilities. Porto's deterministic command protocol, single-owner policy, journal and migration boundary are approved design decisions specified in chapter 27, not capabilities supplied automatically by RocksDB.
+
 ## Approval and supersession evidence
 
 On 22 September 2026 the product owner approved the reduced MVP after agreeing that it must retain artist/third-party-owned infrastructure and real peer participation. The owner requested this complete specification and status APPROVED. The new baseline supersedes the broader London draft, while preserving its navigable documentation structure. No supplied roadmap PDF was available in this authoring task, so none is cited as read or used.

@@ -80,9 +80,36 @@ for vector in fixtures['allocation_vectors']:
         result[i] += 1
     assert list(map(str, result)) == vector['expected'], vector['name']
     assert sum(result) == amount
+ledger = json.loads((root / 'ledger-schemas.json').read_text())
+ledger_fixtures = json.loads((root / 'ledger-fixtures.json').read_text())
+Draft202012Validator.check_schema(ledger)
+ledger_validator = Draft202012Validator(ledger, format_checker=FormatChecker())
+def ledger_digest(domain, value):
+    canonical = json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
+    return hashlib.sha256(('porto:london:' + domain + ':v1\n' + canonical).encode()).hexdigest()
+for command in ledger_fixtures['commands']:
+    ledger_validator.validate(command)
+    expected = next(x['hash'] for x in ledger_fixtures['command_hashes'] if x['command_id'] == command['command_id'])
+    assert ledger_digest('command', command) == expected
+for vector in ledger_fixtures['journal_vectors']:
+    entry = vector['entry']
+    ledger_validator.validate(entry)
+    assert ledger_digest('delta', vector['delta']) == entry['delta_hash']
+    assert ledger_digest('journal', {k: v for k, v in entry.items() if k != 'entry_hash'}) == entry['entry_hash']
+    assert vector['delta'] == sorted(vector['delta'], key=lambda row: (row['column_family'], row['key']))
+for vector in ledger_fixtures['checkpoint_vectors']:
+    checkpoint = vector['checkpoint']
+    ledger_validator.validate(checkpoint)
+    assert ledger_digest('state', vector['rows']) == checkpoint['logical_state_hash']
+    assert vector['rows'] == sorted(vector['rows'], key=lambda row: (row['column_family'], row['key']))
+    assert not any(row['column_family'] == 'private_aux' for row in vector['rows'])
+command_types = ledger['$defs']['CommandEnvelope']['properties']['command_type']['enum']
+assert len(command_types) == 30
+assert len(set(command_types)) == 30
+assert len(ledger['$defs']['CommandEnvelope']['allOf']) == 30
 sources = json.loads((root / 'source-manifest.json').read_text())
 assert sources['status'] == 'APPROVED'
 for source in sources['sources']:
     assert hashlib.sha256((workspace / source['path']).read_bytes()).hexdigest() == source['sha256'], source['path']
-assert len(re.findall(r'^\| A\d\d \|', (root / '22-acceptance-test-catalogue.md').read_text(), re.M)) == 40
-print(f'PASS: {len(pages)} approved pages; {links} local links; {operations} OpenAPI operations; {examples} schema-valid examples; {len(fixtures["artifact_examples"])} artifacts; profile schema; canonical hash and {len(fixtures["allocation_vectors"])} allocation vectors; {len(sources["sources"])} unchanged canonical source hashes; 40 acceptance cases')
+assert len(re.findall(r'^\| A\d\d \|', (root / '22-acceptance-test-catalogue.md').read_text(), re.M)) == 48
+print(f'PASS: {len(pages)} approved pages; {links} local links; {operations} OpenAPI operations; {examples} schema-valid examples; {len(fixtures["artifact_examples"])} artifacts; profile schema; canonical hash and {len(fixtures["allocation_vectors"])} allocation vectors; {len(sources["sources"])} unchanged canonical source hashes; ledger schemas and command/journal/checkpoint hash vectors; 48 acceptance cases')

@@ -12,6 +12,12 @@ London is approved for implementation as a bounded real-money music and infrastr
 
 **Approved scope, not a claim of deployment.** Product-owner approval is recorded on 22 September 2026. Runtime tests, real participant observations and launch authorisations remain separately evidenced. This specification replaces the broader earlier draft without changing canonical PIPs or claiming those proposals were globally amended.
 
+## Build first: the deterministic RocksDB ledger
+
+**The main engineering priority is the [RocksDB-backed ledger engine](27-deterministic-rocksdb-ledger.md).** It owns stream and monetary state transitions through a strict domain API, atomically records journal/state/outbox, and supports deterministic replay and portable checkpoints. Build and verify this foundation before product integrations. Its execution rules form the migration boundary for a future sovereign chain; London still uses Porto ordering and Aptos settlement.
+
+Start with [the ledger contract](27-deterministic-rocksdb-ledger.md), then [W0/W1 delivery and acceptance](16-implementation-plan.md). PostgreSQL is superseded as London's authoritative store. No SQL database or generic key/value mutation API is part of this implementation.
+
 ## Start with the whole story
 
 Read [scope](00-status-and-scope.md), [executive architecture](01-executive-architecture.md) and [the pilot](25-node-package-and-pilot.md). The complete implementation is one music product, one coordinated participant-node network, one accounting backend, one commitment contract and real transfers. There is no token, custom chain, independent attestor network or six-module settlement system.
@@ -26,10 +32,11 @@ Read [scope](00-status-and-scope.md), [executive architecture](01-executive-arch
 | Frontend | Journeys and human-facing states | OpenAPI and browser acceptance matrix |
 | Move / verifier | Commitment module and wire formats | Golden fixtures, append invariants and proof verdicts |
 | Finance / legal / security | Funding, rights, trust and required launch inputs | Production profile and G5 sign-offs |
-| Any implementing agent | Implementation plan and scope exclusions | W0-W7 and A01-A40 traceability |
+| Any implementing agent | Implementation plan and scope exclusions | W0-W7 and A01-A48 traceability |
 
 ## Complete specification
 
+- [Build first: deterministic RocksDB ledger](27-deterministic-rocksdb-ledger.md)
 - [Status, approval and exact scope](00-status-and-scope.md)
 - [Executive architecture](01-executive-architecture.md)
 - [System architecture and ownership](02-system-architecture.md)
@@ -62,6 +69,8 @@ Read [scope](00-status-and-scope.md), [executive architecture](01-executive-arch
 
 ## Machine-readable handoff
 
+- [Ledger schemas](ledger-schemas.json): command envelope, journal and portable checkpoint.
+- [Ledger fixtures](ledger-fixtures.json): canonical hashes and journal chaining examples.
 - [OpenAPI](openapi.json): complete coordinator/node HTTP surface and schemas.
 - [Artifact schemas](artifact-schemas.json): evidence, accounting, statements, indexes, payment journals and corrections.
 - [Release profile schema](release-profile.schema.json): mandatory production inputs, no invented commercial defaults.

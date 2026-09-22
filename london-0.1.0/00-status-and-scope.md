@@ -12,6 +12,10 @@ The product owner approved this reduced MVP specification on 22 September 2026 i
 
 Use **APPROVED** for this specification. Use **NOT IMPLEMENTED / NOT VERIFIED** for runtime capabilities until corresponding evidence exists. Existing whitepaper and PIPs remain unchanged. London-specific departures are explicit in [compatibility](18-compatibility-with-existing-pips.md); this approval does not amend those documents globally.
 
+## Main engineering priority
+
+The approved authoritative store is RocksDB TransactionDB behind a deterministic domain ledger. The [ledger specification](27-deterministic-rocksdb-ledger.md) is the first implementation target: explicit commands, atomic journal/state/outbox transitions, durable idempotency, replay and portable checkpoints. This supersedes the earlier SQL storage decision. Build the reusable state-transition boundary now; consensus and sovereign-chain deployment remain outside the MVP.
+
 ## The experiment
 
 A listener buys access, plays licensed music delivered by an independently operated node, and generates server-side usage evidence. Porto commits evidence and accounting hashes to Aptos Mainnet, allocates the listener's funded budget, and sends real USDC to rights holders and delivery operators. An artist-operated node must transfer cached content to another independently operated node under Porto-issued authorisation. The receiving node then serves that content to a real listener.

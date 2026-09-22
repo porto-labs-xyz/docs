@@ -8,9 +8,9 @@ sidebar_position: 11
 
 ## One backend, restricted jobs
 
-Build a modular backend and transactional worker system. PostgreSQL is authoritative for entitlements, grant consumption, evidence decisions, budgets and obligations. Object storage retains exact signed/canonical artifacts. API and worker can share a repository and deployment pipeline, but payment credentials are scoped to the payment worker. A DB outbox removes the need for a broker at pilot scale.
+Build a modular backend and transactional worker system. The deterministic RocksDB ledger is authoritative for entitlements, grant consumption, evidence decisions, budgets and obligations. One owner executes ordered typed commands with atomic journal/state/outbox persistence; separately credentialed workers never mutate storage directly. See [the ledger contract](27-deterministic-rocksdb-ledger.md). Object storage retains exact signed/canonical artifacts. API and worker can share a repository and deployment pipeline, but payment credentials are scoped to the payment worker. A DB outbox removes the need for a broker at pilot scale.
 
-Every job has a stable business key, lease expiry and retry count. Acquire work under database locks, commit state and outbox atomically, and retry with exponential backoff capped at five minutes. A failed job after ten attempts becomes an explicit operator alert; money jobs remain pending/uncertain, never silently dropped. Worker restarts must not duplicate grant consumption, allocation, commitments or transfers.
+Every job has a stable business key, lease expiry and retry count. Claim work through a typed ledger command with explicit lease timestamps, commit journal/state/outbox atomically, and retry with exponential backoff capped at five minutes. A failed job after ten attempts becomes an explicit operator alert; money jobs remain pending/uncertain, never silently dropped. Worker restarts must not duplicate grant consumption, allocation, commitments or transfers.
 
 ## HTTP conventions
 
@@ -30,7 +30,7 @@ Treasury conversion is manual through an approved provider in this release. Do n
 
 ## Minimum admin commands
 
-Implement authenticated CLI commands with dry-run and JSON result: `catalogue import|activate|disable`, `operator invite|approve|suspend|rotate-key`, `funding import|reconcile`, `hold create|release|close`, `day close|prepare|verify|commit`, `payout prepare|approve|execute|reconcile`, `export audit`, `profile validate`. Node admission consumes the exact `NodeAdmission` schema, including a single-use Porto-issued registration challenge valid for five minutes and proof of the participant key. Catalogue import consumes `CatalogueImport`; activation remains a distinct approval after validation. The challenge signature excludes its own signature field and uses the node-registration domain. Commands call the same domain functions as jobs, require the same roles and emit the same audit records. No direct SQL edits are an approved operational interface.
+Implement authenticated CLI commands with dry-run and JSON result: `catalogue import|activate|disable`, `operator invite|approve|suspend|rotate-key`, `funding import|reconcile`, `hold create|release|close`, `day close|prepare|verify|commit`, `payout prepare|approve|execute|reconcile`, `export audit`, `profile validate`. Node admission consumes the exact `NodeAdmission` schema, including a single-use Porto-issued registration challenge valid for five minutes and proof of the participant key. Catalogue import consumes `CatalogueImport`; activation remains a distinct approval after validation. The challenge signature excludes its own signature field and uses the node-registration domain. Commands call the same domain functions as jobs, require the same roles and emit the same audit records. No SQL endpoint or direct RocksDB Put/Delete is an approved operational interface. Read APIs and administrative commands cannot bypass the ledger owner.
 
 ## Rate limits and errors
 

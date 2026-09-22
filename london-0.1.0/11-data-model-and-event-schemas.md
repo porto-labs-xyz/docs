@@ -6,11 +6,15 @@ sidebar_position: 12
 
 **APPROVED · IMPLEMENTATION SPECIFICATION · London 0.1.0**
 
+## Authoritative engine
+
+The [deterministic RocksDB ledger](27-deterministic-rocksdb-ledger.md) owns all domain mutations. The record catalogue below describes logical entities, not SQL tables. Map entities to the specified column-family/key layout, enforce references and uniqueness in the transaction engine, and atomically append journal entries with state/outbox changes. Private identity/provider mappings belong in private_aux or protected evidence storage and are excluded from replayable financial inputs.
+
 ## Persistence conventions
 
-Use UUIDv4 primary IDs, UTC timestamps and integer amounts. Numeric wire values larger than safe JavaScript integers are decimal strings. PostgreSQL `numeric(20,0)` holds unsigned u64 amounts; add nonnegative and maximum checks. Durations/times use checked integers. Never reuse an ID. Foreign keys and uniqueness are release requirements, not optional optimisations. Each material record stores schema version, creation timestamp, correlation ID and provenance where appropriate.
+Use UUIDv4 primary IDs, UTC timestamps and integer amounts. Numeric wire values larger than safe JavaScript integers are decimal strings. Values are versioned canonical JSON; amounts are unsigned u64 decimal strings checked before arithmetic and persistence. Use checked wide intermediates for allocation. Durations/times use checked integers. Never reuse an ID. Referential checks and explicit uniqueness sentinel keys are release requirements, not optional optimisations. Each material record stores schema version, creation timestamp, correlation ID and provenance where appropriate.
 
-| Table | Required fields beyond ID | Constraints |
+| Logical record family | Required fields beyond ID | Constraints |
 |---|---|---|
 | accounts | provider_subject, roles, status | Unique provider/subject; no PII in chain IDs |
 | subscription_periods | account, provider IDs, start/end, entitlement state, clearance, gross/net GBP | Unique provider period; end greater than start |
@@ -31,7 +35,7 @@ Use UUIDv4 primary IDs, UTC timestamps and integer amounts. Numeric wire values 
 | payment_attempts | payment, sender sequence, signed bytes/hash, expiry, outcome, ledger version | Unique sender/sequence and transaction hash; write before broadcast |
 | exceptions / audit / outbox | target, actor, event, payload reference, timestamp | Append-only audit; unique event business key |
 
-Database/application permissions prevent update/delete of raw receipts, frozen artifacts, posted monetary entries and audit events. Derived status tables can be rebuilt. Append-only here is an access-controlled database property; chain anchoring adds external tamper evidence. Backups and retained object versions provide availability.
+Only the ledger owner has write access to the database directory. Its typed commands prohibit update/delete of immutable receipts, frozen artifacts, posted monetary entries and audit events; RocksDB does not enforce these business restrictions itself. Derived status tables can be rebuilt. Append-only here is an enforced domain/API property; chain anchoring adds external tamper evidence. Backups and retained object versions provide availability.
 
 ## State machines
 
@@ -58,7 +62,7 @@ Payment states: `prepared -> approved -> signed -> submitted -> confirmed`; bran
 
 Use explicit debit/credit postings per business event. Each journal balances in a single asset/currency; never mix GBP and USDC in one numeric balance. Track USDC funding availability, unallocated reserve, artist payables, operator payables, Porto retained share, reserved payouts and confirmed paid amounts. Reconcile chain treasury balances separately from economic attribution. Conversion links GBP and USDC journals through actual provider evidence, not an invented common unit.
 
-Invariant for each funded budget: original funded units plus approved additions equal unallocated plus outstanding allocations plus paid allocations plus recorded refunds/reversals, with corrections represented exactly once. Reservations are a subdivision of unpaid allocations, not another expense. Ledger transitions and outbox events commit in one transaction. Run the invariant check after every accounting job and before signing; any mismatch blocks payouts.
+Invariant for each funded budget: original funded units plus approved additions equal unallocated plus outstanding allocations plus paid allocations plus recorded refunds/reversals, with corrections represented exactly once. Reservations are a subdivision of unpaid allocations, not another expense. Ledger transitions, journal entries, uniqueness keys and outbox events commit in one synchronous RocksDB transaction. Run the invariant check after every accounting job and before signing; any mismatch blocks payouts.
 
 ## Audit events
 

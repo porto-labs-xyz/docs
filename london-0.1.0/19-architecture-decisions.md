@@ -28,6 +28,10 @@ All ADRs below are APPROVED as part of this specification on 22 September 2026. 
 | ADR-14 | Origin fallback has an explicit retained operator share | Preserve accounting conservation and disclose central fallback income |
 | ADR-15 | Technical defaults fixed; external commercial values required | Agents can implement the mechanics without fabricating business approval |
 | ADR-16 | Migration portability only | Avoid building a future chain before the participation hypothesis is tested |
+| ADR-17 | RocksDB TransactionDB replaces PostgreSQL as authoritative store | Build a strict deterministic ledger API and portable logical state now; speed requires measurement |
+| ADR-18 | One active storage owner and serial command executor | Explicit ordering and atomic journal/state/outbox; no multi-writer database or custom replication |
+| ADR-19 | Core execution has no clock, random generation, network or signing | All external observations enter as explicit admitted inputs; replay cannot repeat payments |
+| ADR-20 | W0/W1 ledger is the first implementation target | Require replay, recovery and checkpoint equivalence before real integrations |
 
 ## Change procedure
 
