@@ -15,7 +15,7 @@ sidebar_position: 2
 | Text planner | Classify playback versus edit requests and emit a constrained plan | Small hosted model supporting schema-constrained output; provider chosen by accuracy and latency tests |
 | Job queue | Buffer rendering work and redeliver interrupted jobs | SQS plus dead-letter queue; database outbox prevents lost enqueue events |
 | Audio worker | Validate uploaded media, generate waveforms/renditions, then run approved processing/model operations and check output | Python container with pinned audio libraries and model adapter; separate CPU ingestion and GPU generation queues/pools |
-| Shared audio model | Transform original audio using the requested edit | One versioned general model shared across all permitted tracks; no artist training |
+| Shared audio model: ACE-Step 1.5 | Transform uploaded original/parent audio using the validated edit instruction | Selected pretrained model family, self-hosted behind the Python worker adapter; pin the checkpoint after editing tests; no artist training |
 | Product database | Users, upload sessions, track metadata/permissions, reports, genealogy, jobs, social data and indexed chain events | Managed PostgreSQL; a financial display projection, not a second authoritative royalty ledger |
 | Object storage | Immutable source masters, permitted stems, renders, artwork and private evidence | Private S3 buckets separated by data class and environment |
 | Delivery | Serve granted audio efficiently and support seeking | CloudFront over private S3, using origin access control and expiring grants |

@@ -13,6 +13,8 @@ Build Porto as an open audio-upload and streaming app with voice and text editin
 
 **The founder's current instruction is one shared audio model, conditioned on the original recording and the requested change. No artist-specific models, adapters, fine-tuning programme or training catalogue is required.** This instruction supersedes the bespoke-model assumption in the website and deck for this development proposal. Artist permission still governs which tracks and edits are available.
 
+**ACE-Step 1.5 is the selected shared music model.** Its exact checkpoint and inference settings will be pinned after testing uploaded-audio editing quality, latency and cost.
+
 The smallest useful architecture is a frontend, one modular Porto backend, a durable job queue, an audio worker, one shared audio-generation model, PostgreSQL for product metadata, private S3 storage with CloudFront delivery, and an adapter to the existing Aptos Move contracts. Speech recognition and a small text-planning model translate the user's request into a validated edit plan. The music model produces music, rather than spoken narration.
 
 [Open the interactive architecture](pathname:///architecture/porto-voice-audio.html). The diagram shows the principal service relationships; the detailed request and playback paths are in [Architecture](architecture.md).
@@ -20,7 +22,7 @@ The smallest useful architecture is a frontend, one modular Porto backend, a dur
 | Read next | What it answers |
 | --- | --- |
 | [Architecture](architecture.md) | Components, request flow, storage, finance boundary and deployment |
-| [Audio model research](audio-research.md) | Which models fit, what exact edits require, and how to select one |
+| [Audio model research](audio-research.md) | The selected ACE-Step model, checkpoint tests and exact versus generative edits |
 | [Data, APIs and reliability](data-and-operations.md) | Track lineage, jobs, endpoints, permissions and failure handling |
 | [Development plan](development-plan.md) | Work packages, estimates, ownership, dependencies and acceptance gates |
 | [Decisions and evidence](decisions-and-evidence.md) | What is agreed, proposed, unverified or inconsistent with older sources |

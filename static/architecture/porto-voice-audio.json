@@ -69,8 +69,8 @@
     },
     {
       "id": "model",
-      "type": "external",
-      "label": "Shared audio model",
+      "type": "backend",
+      "label": "ACE-Step 1.5",
       "sublabel": "Original audio + edit instruction",
       "pos": [
         1120,
@@ -218,7 +218,7 @@
       "dot": "violet",
       "title": "Co-create",
       "items": [
-        "Anyone can upload; track owner sets remix rules",
+        "ACE-Step selected; owner controls remix rights",
         "Tempo, pitch and supplied stems use precise tools"
       ]
     },

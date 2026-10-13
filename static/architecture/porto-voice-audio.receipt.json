@@ -1,8 +1,8 @@
 {
   "diagram_type": "architecture",
   "output": "porto-voice-audio.html",
-  "specification_sha256": "6e3a689b61960cd02d1bf3e16516c9a398b9549833d85b66367a1ed42ed49afe",
-  "artifact_sha256": "67ddbc677c162a6177cb3cb16eb11c8e3fe80771c3ddf4651590e42959e0c482",
+  "specification_sha256": "15afe151d65c0e70ef7b0403299ee43175798bc61fb7302c39748676dbddd3bc",
+  "artifact_sha256": "d95f4b41575b1ded4cbc9682081971677eaddb383db520a42d20d321ae365c61",
   "validation": "9/9 showcase, 0 errors, 0 warnings",
   "browser_evidence": "passed",
   "visual_review": "passed",

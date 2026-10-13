@@ -15,7 +15,7 @@ sidebar_position: 6
 | Frontend + backend + S3 | Requested architecture | Add queue/worker, metadata database, rights gate and delivery layer to make it operable |
 | Modular Rust backend; Python audio worker; TypeScript frontend | Recommendation consistent with current London language boundary | Keep orchestration cohesive and isolate audio compute |
 | S3 and CloudFront first delivery | Proposed scope change | Managed pilot delivery; does not satisfy independent-node/cache-transfer acceptance |
-| Stable Audio 3 first model benchmark | Research recommendation | Final shared model remains open until quality, licensing, cost and deployment tests pass |
+| ACE-Step 1.5 primary shared music model | Founder selection, 13 October | Implement ACE-Step first; exact checkpoint, settings and deployment readiness remain evaluation gates |
 | Asynchronous stored audio, explicit playback | Recommendation informed by prototype | Honest progress, retries and mobile behaviour; no promised real-time neural effects |
 | Voice/text only for transformation | Current prototype interaction direction | Preserve simple input; technical controls remain internal |
 | Original/variation 90%/70% rights pools and optional £10 cap | October public proposal, not confirmed tariff | Contract/commercial review required; creator credit is not royalty entitlement |
@@ -32,7 +32,7 @@ sidebar_position: 6
 | What may be changed and shared? | Uploader-selected per-track permissions and declaration; flagged cases reviewed | Transformation and publishing |
 | Which upload formats/quotas launch? | MP3/WAV/FLAC/AAC/Ogg; proposed 500 MB/file and 60-minute source limit; account storage/ingestion limits to approve | Upload capacity and abuse controls |
 | How are disputed uploads handled? | Reporting, auditable holds/takedown/appeals and payout holds; no manual approval of ordinary tracks | Public rollout operations |
-| Which model and deployment? | Stable Audio 3 benchmark first; one selected model behind an adapter | Production generation |
+| Which ACE-Step checkpoint and deployment configuration? | Compare base/SFT/Turbo on required edits; self-host behind the adapter and pin a successful version | Production generation |
 | What counts as paid listening? | Review bounded server-validated duration and tariff rules against Move | Usage evidence and allocation |
 | Can the supplied ABI express October rules and reservations? | Compatibility report before any contract modifications | Accounting integration estimate |
 | Are independent artist/operator nodes part of this release? | Managed S3/CDN delivery for this proposal | Reconciliation with the approved older London pilot |
@@ -40,6 +40,8 @@ sidebar_position: 6
 | Who reviews audio, rights and payment security? | Named reviewers before pilot, with distinct acceptance records | Release sign-off |
 
 ## Conflicting source scopes
+
+The founder's ACE-Step selection supersedes the earlier Stable Audio-first benchmark recommendation in this proposal. Stable Audio and Eleven Music remain documented alternatives; neither is a simultaneous production dependency. ACE-Step family selection is a product/implementation decision, not a completed benchmark.
 
 The founder's later open-upload instruction replaces this plan's original small manually licensed catalogue as the product admission model. Anyone with an account can upload and publish eligible audio. A permission-cleared sample set remains necessary for model testing, and individual upload declarations remain distinct from verified monetization rights. Public website/deck copy and the older curated London pilot have not been revised by this change.
 
