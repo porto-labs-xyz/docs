@@ -1,0 +1,11 @@
+{
+  "diagram_type": "architecture",
+  "output": "porto-voice-audio.html",
+  "specification_sha256": "1a79e036cd978b3f779a7e9a25e2518213b99d1d12f6124a3695bfd66b7f9ad9",
+  "artifact_sha256": "8c5ba00be602452e8c808bb1b87a4cbe6e83a80c2559802b21c841dfb962c706",
+  "validation": "9/9 showcase, 0 errors, 0 warnings",
+  "browser_evidence": "passed",
+  "visual_review": "passed",
+  "visual_review_scope": "1440x900 dark and 2048x1320 light screenshots; automated containment all four viewports and both endpoint themes",
+  "correction_rounds": 0
+}

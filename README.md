@@ -13,6 +13,10 @@ Existing canonical protocol content is mirrored: `docs/whitepaper.md` and `docs/
 
 To change the whitepaper or a PIP, open a PR against that source repo, not here , this site rebuilds automatically (daily, and on every push to `main` here) and picks it up.
 
+## Co-create product proposal
+
+The review proposal in `docs/co-create/` covers the October listening and variation product, one shared source-conditioned audio model, architecture, model research, data/API boundaries and development phases. Its site entry is `/co-create`; the interactive architecture is `/architecture/porto-voice-audio.html`. It does not amend the canonical PIPs or authorize a real-money launch.
+
 ## Local development
 
 ```bash

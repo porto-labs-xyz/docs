@@ -1,0 +1,242 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Porto voice-to-audio architecture (proposal)",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1380,
+      620
+    ]
+  },
+  "components": [
+    {
+      "id": "app",
+      "type": "frontend",
+      "label": "Frontend app",
+      "sublabel": "Player, voice, feed and library",
+      "pos": [
+        40,
+        120
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Porto API",
+      "sublabel": "Auth, permissions and orchestration",
+      "pos": [
+        310,
+        120
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "queue",
+      "type": "messagebus",
+      "label": "Job queue",
+      "sublabel": "SQS, retries and cancellation",
+      "pos": [
+        580,
+        120
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "worker",
+      "type": "backend",
+      "label": "Audio worker",
+      "sublabel": "Render, validate and encode",
+      "pos": [
+        850,
+        120
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "model",
+      "type": "external",
+      "label": "Shared audio model",
+      "sublabel": "Original audio + edit instruction",
+      "pos": [
+        1120,
+        120
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "planner",
+      "type": "external",
+      "label": "Speech + text planner",
+      "sublabel": "Transcribe; constrained edit plan",
+      "pos": [
+        310,
+        430
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "Catalogue, lineage, jobs; chain views",
+      "pos": [
+        580,
+        430
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "s3",
+      "type": "cloud",
+      "label": "Private S3",
+      "sublabel": "Originals, stems and rendered audio",
+      "pos": [
+        850,
+        430
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "cdn",
+      "type": "cloud",
+      "label": "CloudFront",
+      "sublabel": "Signed playback and byte ranges",
+      "pos": [
+        1120,
+        430
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "aptos",
+      "type": "external",
+      "label": "Aptos Move",
+      "sublabel": "Funded usage, allocation and USDC",
+      "pos": [
+        40,
+        430
+      ],
+      "size": [
+        230,
+        80
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "link-app-api",
+      "from": "app",
+      "to": "api",
+      "label": "HTTPS"
+    },
+    {
+      "id": "link-api-queue",
+      "from": "api",
+      "to": "queue",
+      "label": "Enqueue"
+    },
+    {
+      "id": "link-queue-worker",
+      "from": "queue",
+      "to": "worker",
+      "label": "Lease job",
+      "labelDy": -40
+    },
+    {
+      "id": "link-worker-model",
+      "from": "worker",
+      "to": "model",
+      "label": "Audio + plan",
+      "labelDy": -40
+    },
+    {
+      "id": "link-api-planner",
+      "from": "api",
+      "to": "planner",
+      "label": "Voice / text",
+      "labelDy": 80
+    },
+    {
+      "id": "link-api-db",
+      "from": "api",
+      "to": "db",
+      "label": "Metadata"
+    },
+    {
+      "id": "link-api-aptos",
+      "from": "api",
+      "to": "aptos",
+      "label": "Submit / index"
+    },
+    {
+      "id": "link-worker-s3",
+      "from": "worker",
+      "to": "s3",
+      "label": "Read / write",
+      "labelDy": 80
+    },
+    {
+      "id": "link-s3-cdn",
+      "from": "s3",
+      "to": "cdn",
+      "label": "Private origin",
+      "labelDy": -40
+    }
+  ],
+  "cards": [
+    {
+      "dot": "violet",
+      "title": "Co-create",
+      "items": [
+        "One shared model; artist permission per track",
+        "Tempo, pitch and supplied stems use precise tools"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Playback",
+      "items": [
+        "Worker returns a file, not live model output",
+        "App plays through a short-lived CloudFront grant"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Settlement",
+      "items": [
+        "Move owns financial state; SQL holds projections",
+        "Listening evidence stays private and off chain"
+      ]
+    }
+  ]
+}
