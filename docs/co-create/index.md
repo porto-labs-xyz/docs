@@ -7,7 +7,9 @@ sidebar_position: 1
 
 **PROPOSAL FOR REVIEW · 13 October 2026 · Not an implemented or approved release specification**
 
-Build Porto as a streaming app with voice and text editing: the listener selects a licensed original, describes a change, receives a playable variation, and can name, save and share it. Each variation preserves its source, parent and permission history. Eligible paid listening feeds the Porto Ledger and settlement on Aptos.
+Build Porto as an open audio-upload and streaming app with voice and text editing. Anyone with an account can upload audio, add a title and artwork, and publish it to their profile or keep it private. Listeners discover uploaded originals and, where permitted, describe a change, receive a playable variation, and name, save and share it. Each variation preserves its source, parent and permission history. Eligible paid listening feeds the Porto Ledger and settlement on Aptos.
+
+**Open uploading is founder direction, 13 October 2026.** Uploading does not require an artist partnership, manually selected catalogue or payout wallet. Accounts remain subject to upload limits and content rules. Public listening, other-user AI remixing, downloads and monetization have separate permissions; an uploaded file is not automatically cleared for all four.
 
 **The founder's current instruction is one shared audio model, conditioned on the original recording and the requested change. No artist-specific models, adapters, fine-tuning programme or training catalogue is required.** This instruction supersedes the bespoke-model assumption in the website and deck for this development proposal. Artist permission still governs which tracks and edits are available.
 
@@ -33,7 +35,7 @@ Treat the existing Aptos payment contracts as an integration dependency supplied
 
 ## Recommended first release
 
-Start with a small manually licensed catalogue, web playback, voice/text commands, deterministic edits, one benchmarked generative transformation, private drafts, lineage, explicit sharing, simple discovery and testnet accounting. Add real paid listening after tariff, budget-cap funding, rights and payment gates pass. The full plan includes the remaining prototype flows without delaying the first working audio loop.
+Start with self-service account creation and audio uploads, processing/status feedback, public/private tracks, creator profiles, web playback, voice/text commands, deterministic edits, one benchmarked generative transformation, private drafts, lineage, explicit sharing, reporting and simple discovery. Use a permission-cleared sample set to test transformations, rather than restricting the product catalogue to manually onboarded artists. Add testnet accounting, then real paid listening after tariff, budget-cap funding, rights and payment gates pass. The full plan includes the remaining prototype flows without delaying the first working upload-to-audio loop.
 
 The initial managed S3/CDN delivery proposal is a scoped change from the older independent-node pilot. It does not claim to implement node-to-node distribution. Older PRT, app-chain, subscription and operator-pool mechanics remain separately documented; they do not become requirements through this proposal.
 

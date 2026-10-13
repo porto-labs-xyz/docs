@@ -9,19 +9,32 @@ sidebar_position: 2
 
 | Component | Responsibility | Recommended starting point |
 | --- | --- | --- |
-| Frontend app | Player, microphone, editable transcript, requests, progress, drafts, titles, feed, search, lineage and Ledger | Responsive TypeScript web app; reuse Porto's design and prototype interaction patterns |
-| Porto backend | Authentication, catalogue, rights, edit planning, job lifecycle, publication, social state, budgets, usage validation and chain integration | Modular Rust service, consistent with the current London coordinator direction; one deployable API, no initial microservice programme |
+| Frontend app | Self-service signup and uploads, title/artwork/tags, visibility and remix controls, player, voice/text, drafts, feed, search, lineage and Ledger | Responsive TypeScript web app; reuse Porto's design and prototype interaction patterns |
+| Porto backend | Authentication, upload sessions/quotas, content processing and reports, catalogue, rights, edit planning, jobs, publication, budgets and chain integration | Modular Rust service, consistent with the current London coordinator direction; one deployable API, no initial microservice programme |
 | Speech service | Convert captured speech to text | Managed streaming transcription, proxied by the backend; typed input uses the same command path |
 | Text planner | Classify playback versus edit requests and emit a constrained plan | Small hosted model supporting schema-constrained output; provider chosen by accuracy and latency tests |
 | Job queue | Buffer rendering work and redeliver interrupted jobs | SQS plus dead-letter queue; database outbox prevents lost enqueue events |
-| Audio worker | Fetch source, run approved processing/model operations, check output, encode and upload | Python container with pinned audio libraries and model adapter; separate CPU and GPU execution pools |
+| Audio worker | Validate uploaded media, generate waveforms/renditions, then run approved processing/model operations and check output | Python container with pinned audio libraries and model adapter; separate CPU ingestion and GPU generation queues/pools |
 | Shared audio model | Transform original audio using the requested edit | One versioned general model shared across all permitted tracks; no artist training |
-| Product database | Users, catalogue, rights versions, genealogy, social data, jobs, reservations and indexed chain events | Managed PostgreSQL; a financial display projection, not a second authoritative royalty ledger |
+| Product database | Users, upload sessions, track metadata/permissions, reports, genealogy, jobs, social data and indexed chain events | Managed PostgreSQL; a financial display projection, not a second authoritative royalty ledger |
 | Object storage | Immutable source masters, permitted stems, renders, artwork and private evidence | Private S3 buckets separated by data class and environment |
 | Delivery | Serve granted audio efficiently and support seeking | CloudFront over private S3, using origin access control and expiring grants |
 | Aptos integration | Read funded state, submit accepted usage, observe allocation and reconcile payouts | Adapter to the supplied Move package; pin network, ABI, asset metadata and package version |
 
 Operational modules inside the API remain independently testable, but share deployment and product database. The worker is a separate process because music rendering has different hardware, latency and failure characteristics. The initial infrastructure can use ECS/Fargate for the API and CPU jobs, and EC2 GPU instances managed through ECS for a self-hosted model. Fargate is not the proposed GPU execution environment. A hosted model adapter avoids owning GPU capacity if it passes the same tests and catalogue terms.
+
+## Anyone can upload and publish audio
+
+The product is open to anyone with an account, including independent musicians and people uploading recordings or other audio. A manually negotiated artist relationship is optional. Initial alpha access may be operationally limited while the service is tested, but the intended product does not gate uploading on partner status, invitation or a payout wallet.
+
+1. The uploader chooses a file and supplies title, description, artwork, tags and attribution. They confirm their authority to upload and select public or private visibility. Public is available to any eligible account; publication is an explicit action after processing.
+2. The API reserves the account's storage allowance, creates an upload session and issues short-lived signed S3 upload grants to an owner-specific quarantine key. Large files use resumable multipart upload. The browser sends bytes directly to S3, while the API tracks authorization and completion. AWS documents [multipart completion and cleanup](https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html) and [presigned uploads](https://docs.aws.amazon.com/AmazonS3/latest/userguide/PresignedUrlUploadObject.html).
+3. On completion, the server checks the recorded object, checksum and claimed size, then queues ingestion. Never trust a client-only success event. Inspect actual media format, decodability, duration and channels; run malware/content checks and bounded decoding. Reject invalid files with a clear retry path.
+4. A CPU worker produces a playback rendition, duration, loudness metadata and waveform. Keep the admitted source immutable. Processing failure leaves the track unavailable; the original uploaded bytes cannot bypass admission through a public URL.
+5. After required checks pass, the owner can publish to their profile and discovery feed or retain a private track. Ordinary uploads do not need manual catalogue approval. Flagged or disputed items enter an administrative review/hold workflow. Index only published, eligible renditions.
+6. The owner controls permissions for others to create AI variations and download audio independently from visibility. Other-user remixing is off unless explicitly enabled; the owner can request a private transformation after confirming the relevant source rights. Sending audio to a model for inference is disclosed separately from model training. No training programme is authorized by uploading.
+
+Choose initial supported formats and limits before implementation. Suggested ingestion scope is MP3, WAV, FLAC, AAC/M4A and Ogg, with a 500 MB per-file and 60-minute source-duration ceiling, subject to codec and load tests. These are review defaults, not paid plan terms. Generation retains its separate four-minute starting limit; longer uploads remain listenable, with selected excerpts eligible for transformation. Content need not be music to upload, but the shared music model only transforms supported audio types that pass evaluation.
 
 ## Voice or text to a playable version
 
@@ -46,11 +59,11 @@ Artist-supplied aligned stems are optional catalogue assets, not a training data
 
 ## Storage and playback
 
-Use opaque IDs and versioned content keys, such as `originals/{track_id}/{asset_version}/master.wav` and `variations/{variation_id}/{render_version}/playback.mp3`. Keep original masters immutable. Store object keys and hashes in the database; do not use expiring URLs as permanent identifiers. Separation intermediates, abandoned uploads and expired drafts have explicit lifecycle rules.
+Use opaque IDs and versioned content keys, such as `uploads/{user_id}/{upload_id}/source`, `originals/{track_id}/{asset_version}/source` and `variations/{variation_id}/{render_version}/playback.mp3`. Keep admitted source files immutable and preserve their actual format. Store object keys and hashes in the database; do not use expiring URLs as permanent identifiers. Quarantined objects, unfinished multipart uploads, separation intermediates and expired drafts have explicit lifecycle rules.
 
 Separate catalogue originals/stems, rendered drafts/publications, private usage evidence and short-lived microphone recordings into buckets with distinct IAM and retention policies. Enable encryption, TLS, block public access, object versioning where useful and tightly scoped worker roles. A browser can upload only through a short-lived grant to a predetermined object key; verify size, codec and content before admission.
 
-The app requests a playback session from the API. The API validates identity, rights, publication status and budget policy, then issues a short-lived CloudFront URL or cookie. CloudFront reads from S3 through origin access control. Range requests enable seeking without downloading the whole track. AWS documents [signed access](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-signed-urls.html) and [private origins](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-overview.html). Expiring grants reduce exposure; they do not prevent recording or instantly revoke a file already downloaded.
+The app requests a playback session from the API. The API validates the track's public or private access rule, rights, publication status and budget policy, then issues a short-lived CloudFront URL or cookie. CloudFront reads from S3 through origin access control. Range requests enable seeking without downloading the whole track. AWS documents [signed access](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-signed-urls.html) and [private origins](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-overview.html). Expiring grants reduce exposure; they do not prevent recording or instantly revoke a file already downloaded.
 
 Start with progressive MP3/AAC delivery and measured waveform data. Evaluate HLS if segment evidence or delivery behaviour requires it. Private stems and masters never receive listener playback grants. CDN requests, seeks, buffer prefetch and generation previews do not automatically become billable listening.
 

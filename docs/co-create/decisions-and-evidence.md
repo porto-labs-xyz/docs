@@ -9,6 +9,7 @@ sidebar_position: 6
 
 | Decision | Status | Consequence |
 | --- | --- | --- |
+| Anyone with an account can upload audio | Founder instruction, 13 October | Self-service upload and publishing; no artist partnership, curated admission or payout-wallet prerequisite |
 | One shared source-conditioned music model | Founder instruction, 13 October | No per-artist model, adapter, training dataset or fine-tuning workstream |
 | Existing Aptos smart contracts handle payment | Founder-supplied dependency | Verify exact ABI/deployment and accounting support before implementation claims |
 | Frontend + backend + S3 | Requested architecture | Add queue/worker, metadata database, rights gate and delivery layer to make it operable |
@@ -28,7 +29,9 @@ sidebar_position: 6
 | How is generation funded? | Bounded pilot allowance with tracked cost; choose paid quota/price before public billing | Unit economics and public access |
 | How do listeners pay? | Select one route: direct USDC or GBP provider with treasury conversion | Budget funding, refunds and reconciliation |
 | How is original listening funded after the cap? | Explicit bounded subsidy or agreed free-access rule | Cap behaviour and real-money rollout |
-| What may be changed and shared? | Manually approved per-track permission version | Catalogue onboarding and publishing |
+| What may be changed and shared? | Uploader-selected per-track permissions and declaration; flagged cases reviewed | Transformation and publishing |
+| Which upload formats/quotas launch? | MP3/WAV/FLAC/AAC/Ogg; proposed 500 MB/file and 60-minute source limit; account storage/ingestion limits to approve | Upload capacity and abuse controls |
+| How are disputed uploads handled? | Reporting, auditable holds/takedown/appeals and payout holds; no manual approval of ordinary tracks | Public rollout operations |
 | Which model and deployment? | Stable Audio 3 benchmark first; one selected model behind an adapter | Production generation |
 | What counts as paid listening? | Review bounded server-validated duration and tariff rules against Move | Usage evidence and allocation |
 | Can the supplied ABI express October rules and reservations? | Compatibility report before any contract modifications | Accounting integration estimate |
@@ -37,6 +40,8 @@ sidebar_position: 6
 | Who reviews audio, rights and payment security? | Named reviewers before pilot, with distinct acceptance records | Release sign-off |
 
 ## Conflicting source scopes
+
+The founder's later open-upload instruction replaces this plan's original small manually licensed catalogue as the product admission model. Anyone with an account can upload and publish eligible audio. A permission-cleared sample set remains necessary for model testing, and individual upload declarations remain distinct from verified monetization rights. Public website/deck copy and the older curated London pilot have not been revised by this change.
 
 The website and private October deck describe bespoke artist models. The founder's later instruction in this architecture task removes that implementation requirement. This plan records that change without silently revising the website or investor deck.
 

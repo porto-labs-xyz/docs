@@ -15,7 +15,7 @@
       "id": "app",
       "type": "frontend",
       "label": "Frontend app",
-      "sublabel": "Player, voice, feed and library",
+      "sublabel": "Upload, player, voice and feed",
       "pos": [
         40,
         120
@@ -29,7 +29,7 @@
       "id": "api",
       "type": "backend",
       "label": "Porto API",
-      "sublabel": "Auth, permissions and orchestration",
+      "sublabel": "Accounts, publishing and edits",
       "pos": [
         310,
         120
@@ -57,7 +57,7 @@
       "id": "worker",
       "type": "backend",
       "label": "Audio worker",
-      "sublabel": "Render, validate and encode",
+      "sublabel": "Ingest, render and validate",
       "pos": [
         850,
         120
@@ -99,7 +99,7 @@
       "id": "db",
       "type": "database",
       "label": "PostgreSQL",
-      "sublabel": "Catalogue, lineage, jobs; chain views",
+      "sublabel": "Uploads, lineage, jobs; chain views",
       "pos": [
         580,
         430
@@ -113,7 +113,7 @@
       "id": "s3",
       "type": "cloud",
       "label": "Private S3",
-      "sublabel": "Originals, stems and rendered audio",
+      "sublabel": "Uploads, stems and renditions",
       "pos": [
         850,
         430
@@ -218,7 +218,7 @@
       "dot": "violet",
       "title": "Co-create",
       "items": [
-        "One shared model; artist permission per track",
+        "Anyone can upload; track owner sets remix rules",
         "Tempo, pitch and supplied stems use precise tools"
       ]
     },

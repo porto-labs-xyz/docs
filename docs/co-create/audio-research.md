@@ -42,6 +42,12 @@ Recommendation: benchmark Stable Audio 3 first, with ACE-Step and Eleven Music a
 
 “Make it dreamy” needs an interpretation policy. Offer one reasonable bounded default, preserve source context, and let the listener refine through voice/text. Ask only when ambiguity changes the target track, permissions, spending or a major musical outcome. Do not expose technical settings or model names in the normal product flow.
 
+## User-uploaded source audio
+
+The shared model can receive an eligible user-uploaded original or a selected excerpt. Uploading is open to any account; AI inference is governed by the uploader's separate transformation permission and provider terms. An upload does not authorize training. Preserve the uploaded source hash and excerpt time range in every edit plan and result manifest.
+
+The upload service accepts supported audio categories independently from the music model. Speech, field recordings and long mixes can be hosted and played without claiming that the music-editing model can transform them successfully. Evaluate such inputs before enabling them for generation. Disclose unsupported source types and duration limits before reserving generation allowance. Provider admission checks may still reject an otherwise valid Porto upload; do not route rejected content around provider restrictions.
+
 ## Speech and command interpretation
 
 Use an explicit microphone gesture, bounded capture, visible recording state and editable transcript. Music continues playing, matching the prototype. Evaluate recognition with headphones, phone speakers and noisy rooms; echo cancellation and noise suppression can help but must be tested. Typed input remains available for unsupported browsers and recognition failures.

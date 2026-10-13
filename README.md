@@ -15,7 +15,7 @@ To change the whitepaper or a PIP, open a PR against that source repo, not here 
 
 ## Co-create product proposal
 
-The review proposal in `docs/co-create/` covers the October listening and variation product, one shared source-conditioned audio model, architecture, model research, data/API boundaries and development phases. Its site entry is `/co-create`; the interactive architecture is `/architecture/porto-voice-audio.html`. It does not amend the canonical PIPs or authorize a real-money launch.
+The review proposal in `docs/co-create/` covers open self-service audio uploads, creator publishing, the October listening and variation product, one shared source-conditioned audio model, architecture, model research, data/API boundaries and development phases. Its site entry is `/co-create`; the interactive architecture is `/architecture/porto-voice-audio.html`. It does not amend the canonical PIPs or authorize a real-money launch.
 
 ## Local development
 

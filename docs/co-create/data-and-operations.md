@@ -10,7 +10,9 @@ sidebar_position: 4
 | Record | Essential fields and invariant |
 | --- | --- |
 | User / creator | Server identity, handle, profile, consent and optional wallet mapping; handle changes do not change ownership |
-| Artist / work / original track | Master and composition identifiers, source credit, catalogue status, artwork, territory and source asset manifest |
+| Upload session / quota | Owner, reserved bytes, S3 multipart ID, expected size/checksum, grant expiry, parts, processing job and quota finalization; no cross-account writes |
+| Original uploaded track | Uploader, title, description, artwork, tags, source credit, audio type, optional work identifiers, processing state, visibility and immutable asset manifest |
+| Report / content case | Reporter, track, reason, evidence reference, reviewer, hold/takedown/appeal status and audit trail; uploader declaration remains distinct from verified rights |
 | Rights version | Effective dates, rights-holder splits, permitted edits, private preview/publication/download permissions and revocation; immutable historical versions |
 | Audio asset | Object key, hash, codec, sample rate, channels, duration, lineage and validated status; immutable once admitted |
 | Variation | Original root, direct parent, creator, chosen title, permission version, edit plan, model/render version, asset manifest and visibility |
@@ -30,6 +32,15 @@ These endpoints are an implementation planning contract. Existing London OpenAPI
 
 | Endpoint | Behaviour |
 | --- | --- |
+| `POST /v1/uploads` | Any authenticated account creates an upload session and atomically reserves storage quota |
+| `POST /v1/uploads/{id}/parts` | Issue or renew bounded signed grants for specified parts of the owner's upload |
+| `GET /v1/uploads/{id}` | Owner reads received parts, processing status, errors and result track ID |
+| `POST /v1/uploads/{id}/complete` | Idempotent completion; verify object/parts/checksum server-side and queue one ingestion job |
+| `DELETE /v1/uploads/{id}` | Abort unfinished upload, clean parts and release unused storage allowance |
+| `PATCH /v1/tracks/{id}` | Owner updates title, description, tags, artwork and versioned visibility/remix/download permissions |
+| `POST /v1/tracks/{id}/publish` | Publish a processed eligible original to profile/feed; ordinary tracks require no manual partnership approval |
+| `DELETE /v1/tracks/{id}` | Owner withdraws original; stop new access and resolve linked variations under the applicable permission policy |
+| `POST /v1/tracks/{id}/reports` | Submit bounded abuse or rights report into an auditable moderation case |
 | `POST /v1/voice/sessions` | Create bounded authorized microphone stream; return transcript events |
 | `POST /v1/commands/plan` | Resolve target and return validated intent, clarification or unsupported response; no charged side effect |
 | `POST /v1/generation-quotes` | Return expiry, operation scope, maximum charge/allowance and tariff version |
@@ -56,6 +67,7 @@ Example server-validated plan, not executable shell text:
   "intent": "transform",
   "source_track_id": "track_example",
   "parent_variation_id": null,
+  "source_range": {"start_ms": 0, "end_ms": 30000},
   "operations": [
     {"type": "mute_stem", "stem_id": "guitar_aligned"},
     {"type": "tempo", "ratio": 0.8, "preserve_pitch": true},
@@ -66,7 +78,17 @@ Example server-validated plan, not executable shell text:
 }
 ```
 
-Source ID, stems, permission, model and price are resolved by trusted code. Reject absent stems, unknown fields, unsupported operations, out-of-range numbers and conflicts such as contradictory speed instructions. Quote separately for preview and full rendition; preview permission does not grant sharing.
+Source ID, stems, permission, model and price are resolved by trusted code. Reject absent stems, invalid source intervals, unknown fields, unsupported operations, out-of-range numbers and conflicts such as contradictory speed instructions. Quote separately for preview and full rendition; preview permission does not grant sharing.
+
+## Upload states and content controls
+
+Upload sessions follow `created → uploading → uploaded → inspecting → transcoding → ready`, with `failed`, `rejected`, `aborted` and `expired` terminal states. Track visibility follows a separate private/public state. A report may put a previously ready track on hold; ordinary processing does not imply manual curation. Show upload progress separately from server processing, and give a retry path without silently duplicating tracks.
+
+Reserve storage against the declared maximum before granting upload access; enforce actual bytes on completion and safely finalize the reservation once. Limit active sessions, daily ingestion minutes and total retained bytes per account. Abort orphaned multipart uploads on expiry and release reservations through a reconciler. Client part ETags help complete the upload but are not assumed to be whole-file content hashes. A reupload gets a new source version; it cannot replace audio beneath an existing variation or royalty record.
+
+Require an uploader rights declaration, with explicit permissions for public playback, owner transformation, other-user remixing, downloads and monetization. Public visibility alone enables none of the latter three. Do not gate ordinary uploading on signed artist contracts or payout onboarding. Publishing and other-user remix permissions are independently selectable; exact policy for derivatives after a permission change must be disclosed before publication.
+
+Build reporting, disputed-content holds, reviewer tools, notification and an appeal workflow before public open-upload rollout. Checks should flag suspicious files and cases for review, not require staff to approve every normal track. A fingerprint match, if an approved provider is used, is a review signal rather than proof of ownership. Prevent user-selected royalty recipients and disputed claims from triggering irreversible payouts without the required verification/hold policy. Choose and approve content rules, complaint handling and retention separately from software implementation.
 
 ## Job state and cost control
 
